@@ -1,9 +1,10 @@
-name: CI/CD Pipeline
+name: Application Deployment
+
 
 on:
   push:
     paths:
-      - "application/**"
+      - "applications/**"
     branches:
       - dev
       - staging
