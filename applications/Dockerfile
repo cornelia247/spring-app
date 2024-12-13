@@ -5,7 +5,7 @@ FROM maven:3.8.7-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # Copy the project files
-COPY . .
+COPY applications/. .
 
 # Build the Spring Boot application
 RUN mvn package 

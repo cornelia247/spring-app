@@ -3,8 +3,8 @@ name: Application Deployment
 
 on:
   push:
-    paths:
-      - "applications/**"
+    # paths:
+      # - "applications/**"
     branches:
       - dev
       - staging
