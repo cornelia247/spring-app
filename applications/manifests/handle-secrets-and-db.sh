@@ -25,9 +25,9 @@ if [[ -z "$DB_HOST" || -z "$DB_NAME" || -z "$DB_USER" || -z "$DB_PASSWORD" ]]; t
 fi
 
 # Step 3: Encode secrets into Base64
-SPRING_DATASOURCE_URL=$(echo -n "jdbc:postgresql://$DB_HOST:5432/$DB_NAME" | base64)
-SPRING_DATASOURCE_USERNAME=$(echo -n "$DB_USER" | base64)
-SPRING_DATASOURCE_PASSWORD=$(echo -n "$DB_PASSWORD" | base64)
+SPRING_DATASOURCE_URL=$(echo -n "jdbc:postgresql://$DB_HOST:5432/$DB_NAME" | sed 's|[&/]|\\&|g' | base64)
+SPRING_DATASOURCE_USERNAME=$(echo -n "$DB_USER" | sed 's|[&/]|\\&|g' | base64)
+SPRING_DATASOURCE_PASSWORD=$(echo -n "$DB_PASSWORD" | sed 's|[&/]|\\&|g' | base64)
 
 # Step 4: Use sed to update the Kubernetes Secret manifest
 K8S_SECRET_NAME="${ENVIRONMENT}-spring-db-credentials"
