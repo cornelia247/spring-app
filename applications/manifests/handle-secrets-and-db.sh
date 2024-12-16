@@ -18,6 +18,12 @@ DB_NAME=$(echo $DB_SECRET | jq -r '.db_name')
 DB_USER=$(echo $DB_SECRET | jq -r '.username')
 DB_PASSWORD=$(echo $DB_SECRET | jq -r '.password')
 
+# Check for empty variables
+if [[ -z "$DB_HOST" || -z "$DB_NAME" || -z "$DB_USER" || -z "$DB_PASSWORD" ]]; then
+  echo "Error: One or more database credentials are empty. Please check the Secrets Manager key: $SECRET_NAME"
+  exit 1
+fi
+
 # Step 3: Check if the database exists and create it if it doesn’t
 echo "Checking if database '$DB_NAME' exists on host '$DB_HOST'..."
 PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME';" | grep -q 1 || {
@@ -26,7 +32,12 @@ PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d postgres -tc "SELECT 1 F
   echo "Database '$DB_NAME' created successfully!"
 }
 
-# Step 4: Create Kubernetes Secret with the required environment variables
+# Step 4: Encode secrets into Base64
+SPRING_DATASOURCE_URL=$(echo -n "jdbc:postgresql://$DB_HOST:5432/$DB_NAME" | base64)
+SPRING_DATASOURCE_USERNAME=$(echo -n "$DB_USER" | base64)
+SPRING_DATASOURCE_PASSWORD=$(echo -n "$DB_PASSWORD" | base64)
+
+# Step 5: Create Kubernetes Secret with the required environment variables
 K8S_SECRET_NAME="${ENVIRONMENT}-spring-db-credentials"
 echo "Creating Kubernetes Secret with name: $K8S_SECRET_NAME"
 cat <<EOF | kubectl apply -f -
@@ -36,9 +47,9 @@ metadata:
   name: $K8S_SECRET_NAME
 type: Opaque
 data:
-  SPRING_DATASOURCE_URL: $(echo -n "jdbc:postgresql://$DB_HOST:5432/$DB_NAME" | base64)
-  SPRING_DATASOURCE_USERNAME: $(echo -n "$DB_USER" | base64)
-  SPRING_DATASOURCE_PASSWORD: $(echo -n "$DB_PASSWORD" | base64)
+  SPRING_DATASOURCE_URL: $SPRING_DATASOURCE_URL
+  SPRING_DATASOURCE_USERNAME: $SPRING_DATASOURCE_USERNAME
+  SPRING_DATASOURCE_PASSWORD: $SPRING_DATASOURCE_PASSWORD
 EOF
 
 echo "Kubernetes Secret '$K8S_SECRET_NAME' has been successfully created/updated!"
