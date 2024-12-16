@@ -61,8 +61,8 @@ jobs:
   
       - name: Run database and secrets script
         run: |
-          chmod +x ./handle-secrets-and-db.sh
-          ./handle-secrets-and-db.sh
+          chmod +x ./applications/manifests/handle-secrets-and-db.s
+          ./applications/manifests/handle-secrets-and-db.s
 
       # - name: Deploy to EKS
       #   env:
@@ -117,7 +117,7 @@ jobs:
       - name: Run database and secrets script
         run: |
           chmod +x ./applications/manifests/handle-secrets-and-db.sh
-          ./handle-secrets-and-db.sh
+          ./applications/manifests/handle-secrets-and-db.s
 
     # - name: Deploy to EKS
     #   env:
