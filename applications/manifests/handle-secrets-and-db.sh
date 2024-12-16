@@ -22,6 +22,14 @@ DB_NAME=$(echo "$DB_SECRET" | jq -e -r '.db_name // empty') || error_exit "Faile
 DB_USER=$(echo "$DB_SECRET" | jq -e -r '.username // empty') || error_exit "Failed to extract username"
 DB_PASSWORD=$(echo "$DB_SECRET" | jq -e -r '.password // empty') || error_exit "Failed to extract password"
 
+
+echo "Checking if database '$DB_NAME' exists on host '$DB_HOST'..."
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME';" | grep -q 1 || {
+  echo "Database '$DB_NAME' does not exist. Creating it now..."
+  PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d postgres -c "CREATE DATABASE \"$DB_NAME\";"
+  echo "Database '$DB_NAME' created successfully!"
+}
+
 # Base64 encode with URL-safe and no-wrap options
 SPRING_DATASOURCE_URL=$(printf "jdbc:postgresql://%s:5432/%s" "$DB_HOST" "$DB_NAME" | base64 -w 0)
 SPRING_DATASOURCE_USERNAME=$(printf "%s" "$DB_USER" | base64 -w 0)
