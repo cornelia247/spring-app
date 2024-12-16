@@ -63,7 +63,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
+          terraform_version: 1.9.8
           
       - name: Set Terraform Variables
         id: set-vars
