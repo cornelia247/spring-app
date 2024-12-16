@@ -75,10 +75,13 @@ jobs:
             fi
 
       - name: Terraform Init
-        run: terraform init
+        run:
+          echo running terraform init 
+          terraform init
 
       - name: Terraform Plan
-        run: terraform plan -var-file="$TF_VAR_FILE" 
+          echo running terraform plan with ${{ github.ref_name }}.tfvars
+        run: terraform plan -var-file=${{ github.ref_name }}.tfvars 
 
   apply:
     name: Terraform Apply
