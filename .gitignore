@@ -2,5 +2,9 @@
 node_modules
 .DS_Store
 target/
+.terraform.*
 .terraform/*
+errored.tfstate
+.terraform
+
 

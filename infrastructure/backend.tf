@@ -2,14 +2,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.49.0"
+      version = "5.81.0"
     }
   }
   backend "s3" {
-    bucket         = var.s3_bucket
+    bucket         = "spring-time-terraform-backend-bucket"
     region         = "us-east-1"
     key            = "terraform/state"
-    dynamodb_table = var.dynamodb_table
+    dynamodb_table = "terraform-lock-table"
+
   }
 }
 

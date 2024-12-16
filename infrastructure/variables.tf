@@ -23,9 +23,7 @@ variable "db_username" {}
 variable "db_name" {
   type = string
 }
-#backend
-variable "s3_bucket" {}
-variable "dynamodb_table" {}
+
 
 
 

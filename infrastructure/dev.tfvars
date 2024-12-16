@@ -23,7 +23,5 @@ cluster_version = 1.29
   db_username = "postgres"
   db_name = "spring-db"
 
-#backend
-  s3_bucket = "spring-time-terraform-backend-bucket"
-  dynamodb_table = "terraform-lock-table"
+
 
