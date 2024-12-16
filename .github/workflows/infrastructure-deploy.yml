@@ -35,15 +35,19 @@ jobs:
         id: set-vars
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "TF_VAR_FILE=./prod.tfvars" >> $GITHUB_ENV
+            echo "TF_VAR_FILE=./infrastructure/prod.tfvars" >> $GITHUB_ENV
           else
-            echo "TF_VAR_FILE=./${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
+            echo "TF_VAR_FILE=./infrastructure/${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
           fi
 
   plan:
     name: Terraform Plan
     needs: setup
     runs-on: ubuntu-latest
+    defaults:
+     run:
+       shell: bash
+       working-directory: ./infrastructure
 
     steps:
       - name: Checkout repository
@@ -61,11 +65,20 @@ jobs:
         with:
           terraform_version: 1.5.0
           
+      - name: Set Terraform Variables
+        id: set-vars
+        run: |
+            if [[ "${{ github.ref_name }}" == "main" ]]; then
+              echo "TF_VAR_FILE=./infrastructure/prod.tfvars" >> $GITHUB_ENV
+            else
+              echo "TF_VAR_FILE=./infrastructure/${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
+            fi
+
       - name: Terraform Init
-        run: terraform -chdir=./infrastructure init
+        run: terraform init
 
       - name: Terraform Plan
-        run: terraform -chdir=./infrastructure plan -var-file="$TF_VAR_FILE"
+        run: terraform plan -var-file="$TF_VAR_FILE" 
 
   apply:
     name: Terraform Apply
@@ -90,10 +103,10 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform -chdir=./infrastructure init
+        run: terraform init
 
       - name: Apply the Plan
-        run: terraform -chdir=./infrastructure apply tfplan
+        run: terraform apply tfplan
 
   prod-apply:
     name: Terraform Apply for Production
@@ -122,7 +135,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform -chdir=./infrastructure init
+        run: terraform init
 
       - name: Terraform Apply (Requires Approval)
-        run: terraform -chdir=./infrastructure apply tfplan
+        run: terraform apply tfplan
