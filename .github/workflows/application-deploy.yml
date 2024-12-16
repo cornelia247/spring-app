@@ -43,7 +43,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} 
           ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-spring-repo       
-          IMAGE_TAG: ${{ github.sha[0:7] }}
+          IMAGE_TAG: ${{ steps.commit.outputs.short }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f applications/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -98,7 +98,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} 
           ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-spring-repo       
-          IMAGE_TAG: ${{ github.sha[0:7] }}
+          IMAGE_TAG: ${{ steps.commit.outputs.short }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f applications/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
