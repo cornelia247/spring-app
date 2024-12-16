@@ -7,7 +7,7 @@ echo "Environment: $ENVIRONMENT"
 
 # Construct secret name
 SECRET_NAME="${ENVIRONMENT}-spring-db-credentials"
-log "Fetching database credentials: $SECRET_NAME"
+echo "Fetching database credentials: $SECRET_NAME"
 
 # Fetch and parse secrets with robust error handling
 DB_SECRET=$(aws secretsmanager get-secret-value \
@@ -31,7 +31,7 @@ SPRING_DATASOURCE_PASSWORD=$(printf "%s" "$DB_PASSWORD" | base64 -w 0)
 K8S_SECRET_NAME="${ENVIRONMENT}-spring-db-credentials"
 SECRET_FILE="secret.yaml"
 
-log "Creating Kubernetes Secret manifest: $SECRET_FILE"
+echo "Creating Kubernetes Secret manifest: $SECRET_FILE"
 cp ./applications/manifests/secret.yaml "$SECRET_FILE"
 
 # Use GNU sed for more consistent behavior across environments
