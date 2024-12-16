@@ -116,7 +116,7 @@ jobs:
   
       - name: Run database and secrets script
         run: |
-          chmod +x ./handle-secrets-and-db.sh
+          chmod +x ./applications/manifests/handle-secrets-and-db.sh
           ./handle-secrets-and-db.sh
 
     # - name: Deploy to EKS
