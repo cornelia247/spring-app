@@ -2,31 +2,59 @@ name: Infrastructure Deployment
 
 on:
   push:
-    paths:
-      - "infrastructure/**"
     branches:
       - main
       - staging
-      - develop
-  workflow_dispatch:
+      - dev
 
 env:
-  TF_VAR_environment: ${{ github.ref_name }}
+  AWS_REGION: us-east-1  
 
 jobs:
-  terraform-init:
-    name: Initialize Terraform
+  setup:
+    name: Setup Environment
     runs-on: ubuntu-latest
-
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Set Terraform Variables
+        id: set-vars
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "TF_VAR_FILE=prod.tfvars" >> $GITHUB_ENV
+          else
+            echo "TF_VAR_FILE=${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
+          fi
+
+  plan:
+    name: Terraform Plan
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
@@ -34,43 +62,59 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config="key=${{ github.ref_name }}.tfstate"
-
-  terraform-apply:
-    name: Apply Infrastructure
-    needs: terraform-init
-    runs-on: ubuntu-latest
-    environment: apply
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
+        run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan -var-file="${{ github.ref_name }}.tfvars"
+        run: terraform plan -var-file="$TF_VAR_FILE" -out=tfplan
 
-      - name: Terraform Apply
-        run: terraform apply -var-file="${{ github.ref_name }}.tfvars" -auto-approve
-
-  terraform-destroy:
-    name: Destroy Infrastructure
-    needs: terraform-apply
+  apply:
+    name: Terraform Apply
+    needs: plan
     runs-on: ubuntu-latest
-    environment: destroy
+    if: github.ref_name != 'main'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
 
-      - name: Terraform Destroy
-        run: terraform destroy -var-file="${{ github.ref_name }}.tfvars" -auto-approve
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Apply the Plan
+        run: terraform apply tfplan
+
+  prod-apply:
+    name: Terraform Apply for Production
+    needs: plan
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+
+    environment:
+      name: production
+      url: https://console.aws.amazon.com  # Optional for linking approval
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Terraform
+        uses: hashicorp
