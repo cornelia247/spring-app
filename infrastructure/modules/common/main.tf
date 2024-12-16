@@ -149,17 +149,27 @@ resource "aws_route_table_association" "private_rt_association" {
 
 resource "aws_security_group" "eks_cluster_sg" {
   name        = var.eks_sg_name
-  description = "Allow 443 from Jump Server only"
+  description = "Allow specific traffic to EKS cluster and database"
 
   vpc_id = aws_vpc.vpc.id
 
+  # Allow HTTPS (Port 443)
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] // It should be specific IP range
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Allow PostgreSQL (Port 5432) 
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow all outbound traffic
   egress {
     from_port   = 0
     to_port     = 0
@@ -168,8 +178,8 @@ resource "aws_security_group" "eks_cluster_sg" {
   }
 
   tags = {
-    Name = var.eks_sg_name
-    Project = var.project_name
-    Environment  = var.env
+    Name        = var.eks_sg_name
+    Project     = var.project_name
+    Environment = var.env
   }
 }

@@ -12,10 +12,12 @@ on:
 
 env:
   TF_VAR_environment: ${{ github.ref_name }}
+  TF_BACKEND_KEY: ${{ github.ref_name == 'main' && 'prod.tfstate' || github.ref_name + '.tfstate' }}
+  TF_VARS_FILE: ${{ github.ref_name == 'main' && 'prod.tfvars' || github.ref_name + '.tfvars' }}
 
 jobs:
-  terraform-init:
-    name: Initialize Terraform
+  setup:
+    name: Setup Environment
     runs-on: ubuntu-latest
 
     env:
@@ -23,6 +25,35 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+    outputs:
+      backend_key: ${{ steps.set-keys.outputs.backend_key }}
+      vars_file: ${{ steps.set-keys.outputs.vars_file }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Set Terraform Keys
+        id: set-keys
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "backend_key=prod.tfstate" >> $GITHUB_ENV
+            echo "vars_file=prod.tfvars" >> $GITHUB_ENV
+          else
+            echo "backend_key=${{ github.ref_name }}.tfstate" >> $GITHUB_ENV
+            echo "vars_file=${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
+          fi
+
+  plan:
+    name: Terraform Plan
+    needs: setup
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -34,34 +65,17 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config="key=${{ github.ref_name }}.tfstate"
-
-  terraform-apply:
-    name: Apply Infrastructure
-    needs: terraform-init
-    runs-on: ubuntu-latest
-    environment: apply
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
+        run: terraform init -backend-config="key=${{ env.backend_key }}"
 
       - name: Terraform Plan
-        run: terraform plan -var-file="${{ github.ref_name }}.tfvars"
+        id: save-plan
+        run: terraform plan -var-file="${{ env.vars_file }}" -out=tfplan
 
-      - name: Terraform Apply
-        run: terraform apply -var-file="${{ github.ref_name }}.tfvars" -auto-approve
-
-  terraform-destroy:
-    name: Destroy Infrastructure
-    needs: terraform-apply
+  apply:
+    name: Terraform Apply
+    needs: plan
     runs-on: ubuntu-latest
-    environment: destroy
+    if: github.ref_name != 'main'
 
     steps:
       - name: Checkout repository
@@ -72,5 +86,134 @@ jobs:
         with:
           terraform_version: 1.5.0
 
-      - name: Terraform Destroy
-        run: terraform destroy -var-file="${{ github.ref_name }}.tfvars" -auto-approve
+      - name: Terraform Init
+        run: terraform init -backend-config="key=${{ env.backend_key }}"
+
+      - name: Apply the Plan
+        run: terraform apply tfplan
+
+  prod-apply:
+    name: Terraform Apply for Production
+    needs: plan
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init -backend-config="key=${{ env.backend_key }}"
+
+      - name: Terraform Apply (Requires Approval)
+        run: terraform apply tfplan
+
+  destroy:
+    name: Destroy Infrastructure
+    needs: [apply, prod-apply]
+    runs-on: ubuntu-latest
+    environment:
+      name: destruction
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init -backend-config="key=${{ env.backend_key }}"
+
+      - name: Destroy Infrastructure
+        run: terraform destroy -var-file="${{ env.vars_file }}" -auto-approve
+
+
+
+
+# name: Infrastructure Deployment
+
+# on:
+#   push:
+#     paths:
+#       - "infrastructure/**"
+#     branches:
+#       - main
+#       - staging
+#       - develop
+#   workflow_dispatch:
+
+# env:
+#   TF_VAR_environment: ${{ github.ref_name }}
+
+# jobs:
+#   terraform-init:
+#     name: Initialize Terraform
+#     runs-on: ubuntu-latest
+
+#     env:
+#       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+#       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+#       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+#       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+
+#       - name: Install Terraform
+#         uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: 1.5.0
+
+#       - name: Terraform Init
+#         run: terraform init -backend-config="key=${{ github.ref_name }}.tfstate"
+
+#   terraform-apply:
+#     name: Apply Infrastructure
+#     needs: terraform-init
+#     runs-on: ubuntu-latest
+#     environment: apply
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+
+#       - name: Install Terraform
+#         uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: 1.5.0
+
+#       - name: Terraform Plan
+#         run: terraform plan -var-file="${{ github.ref_name }}.tfvars"
+
+#       - name: Terraform Apply
+#         run: terraform apply -var-file="${{ github.ref_name }}.tfvars" -auto-approve
+
+#   terraform-destroy:
+#     name: Destroy Infrastructure
+#     needs: terraform-apply
+#     runs-on: ubuntu-latest
+#     environment: destroy
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+
+#       - name: Install Terraform
+#         uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: 1.5.0
+
+#       - name: Terraform Destroy
+#         run: terraform destroy -var-file="${{ github.ref_name }}.tfvars" -auto-approve

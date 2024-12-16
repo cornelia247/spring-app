@@ -93,12 +93,14 @@ module "database" {
   source = "./modules/database"
   project_name = var.project_name
   env = var.env
-  private_subnet_ids= module.vpc.private_subnet_ids
+  public_subnet_ids= module.vpc.public_subnet_ids
+  # private_subnet_ids = module.vpc.private_subnet_ids
   engine_version = var.engine_version
   instance_class = var.instance_class
   allocated_storage = var.allocated_storage
   db_username = var.db_username
   db_name =  var.db_name
+  eks_sg_id = module.vpc.eks_sg_id
 }
 
 

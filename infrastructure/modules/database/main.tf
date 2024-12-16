@@ -9,7 +9,7 @@ resource "random_password" "db_password" {
 # Database Subnet Group
 resource "aws_db_subnet_group" "this" {
   name       = "${var.env}-${var.project_name}-db-subnet-group"
-  subnet_ids = var.private_subnet_ids
+  subnet_ids = var.public_subnet_ids
 
   tags = {
     Name = "${var.env}-${var.project_name}-db-subnet-group"
@@ -18,16 +18,20 @@ resource "aws_db_subnet_group" "this" {
   }
 }
 
+
 # PostgreSQL Database
 resource "aws_db_instance" "this" {
   identifier           = "${var.env}-${var.project_name}-db"
   engine               = "postgres"
   engine_version       = var.engine_version
+  vpc_security_group_ids = [var.eks_sg_id]
   instance_class       = var.instance_class
   allocated_storage    = var.allocated_storage
   db_subnet_group_name = aws_db_subnet_group.this.name
   username             = var.db_username
   password             = random_password.db_password.result
+  publicly_accessible    = true
+
   skip_final_snapshot  = true
 
   tags = {
