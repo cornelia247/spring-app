@@ -8,13 +8,6 @@ on:
       - main
       - staging
       - develop
-  workflow_dispatch:
-
-env:
-  TF_VAR_environment: ${{ github.ref_name }}
-  TF_BACKEND_KEY: ${{ github.ref_name == 'main' && 'prod.tfstate' || github.ref_name + '.tfstate' }}
-  TF_VARS_FILE: ${{ github.ref_name == 'main' && 'prod.tfvars' || github.ref_name + '.tfvars' }}
-
 jobs:
   setup:
     name: Setup Environment
@@ -43,10 +36,8 @@ jobs:
         id: set-keys
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "backend_key=prod.tfstate" >> $GITHUB_ENV
             echo "vars_file=prod.tfvars" >> $GITHUB_ENV
           else
-            echo "backend_key=${{ github.ref_name }}.tfstate" >> $GITHUB_ENV
             echo "vars_file=${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
           fi
 
@@ -65,7 +56,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config="key=${{ env.backend_key }}"
+        run: terraform init 
 
       - name: Terraform Plan
         id: save-plan
@@ -87,7 +78,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config="key=${{ env.backend_key }}"
+        run: terraform init 
 
       - name: Apply the Plan
         run: terraform apply tfplan
@@ -111,7 +102,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config="key=${{ env.backend_key }}"
+        run: terraform init 
 
       - name: Terraform Apply (Requires Approval)
         run: terraform apply tfplan
@@ -133,7 +124,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init -backend-config="key=${{ env.backend_key }}"
+        run: terraform init 
 
       - name: Destroy Infrastructure
         run: terraform destroy -var-file="${{ env.vars_file }}" -auto-approve

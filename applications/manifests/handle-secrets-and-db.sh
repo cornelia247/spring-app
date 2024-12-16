@@ -22,7 +22,7 @@ DB_PASSWORD=$(echo $DB_SECRET | jq -r '.password')
 echo "Checking if database '$DB_NAME' exists on host '$DB_HOST'..."
 PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME';" | grep -q 1 || {
   echo "Database '$DB_NAME' does not exist. Creating it now..."
-  PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d postgres -c "CREATE DATABASE $DB_NAME;"
+  PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d postgres -c "CREATE DATABASE \"$DB_NAME\";"
   echo "Database '$DB_NAME' created successfully!"
 }
 
