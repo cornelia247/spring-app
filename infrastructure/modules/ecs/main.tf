@@ -105,7 +105,7 @@ resource "aws_ecs_service" "main" {
   }
 
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition] // ignoring task definitions
   }
 
   depends_on = [aws_iam_role_policy_attachment.ecs_task_execution_role]
