@@ -113,7 +113,7 @@ jobs:
 
   dockerize-and-push-to-production:
     needs: build-and-test
-    if: ${{ success() }} && github.ref_name == 'main'
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     defaults:
      run:
