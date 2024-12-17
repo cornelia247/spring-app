@@ -81,7 +81,12 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > ./task-definition.json
+          
+      - name: Debug Task Definition File Creation
+        run: |
+            echo "Listing current directory:"
+            ls -la
      
 
       - name: Build, tag, and push image to Amazon ECR
@@ -102,6 +107,14 @@ jobs:
           task-definition: task-definition.json
           container-name: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-app
           image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy AWS ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+            task-definition: ${{ steps.task-def.outputs.task-definition }}
+            service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
+            cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
+            wait-for-service-stability: true
 
       # Step 6: Deploy to EKS (Optional for now)
       # - name: Update kube config
