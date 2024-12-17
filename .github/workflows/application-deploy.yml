@@ -9,6 +9,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.AWS_ACCESS_KEY_ID }}:role/GitHubAction-AssumeRoleWithAction
+  ROLE_SESSION_NAME: github-workflow-role
 
 jobs:
   build-and-deploy-to-dev-or-staging:
@@ -29,10 +31,10 @@ jobs:
           echo "ENVIRONMENT=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -49,20 +51,20 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # Step 6: Deploy to EKS (Optional for now)
-      - name: Update kube config
-        env:
-          EKS_CLUSTER_NAME: ${{ env.ENVIRONMENT }}-spring-cluster
-        run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+      # - name: Update kube config
+      #   env:
+      #     EKS_CLUSTER_NAME: ${{ env.ENVIRONMENT }}-spring-cluster
+      #   run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
         
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq postgresql-client
+      # - name: Install dependencies
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y jq postgresql-client
   
-      - name: Run database and secrets script
-        run: |
-          chmod +x ./applications/manifests/handle-secrets-and-db.sh
-          ./applications/manifests/handle-secrets-and-db.sh
+      # - name: Run database and secrets script
+      #   run: |
+      #     chmod +x ./applications/manifests/handle-secrets-and-db.sh
+      #     ./applications/manifests/handle-secrets-and-db.sh
 
       # - name: Deploy to EKS
       #   env:
