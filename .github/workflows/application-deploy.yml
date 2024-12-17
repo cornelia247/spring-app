@@ -33,6 +33,10 @@ jobs:
         id: set-env
         run: |
           echo "ENVIRONMENT=${{ github.ref_name }}" >> $GITHUB_ENV
+      
+      - name: Debug AWS Account ID
+        run: |
+          echo "Account ID: ${{ secrets.YOUR_AWS_ACCOUNT_ID }}"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
