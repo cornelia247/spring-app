@@ -11,6 +11,7 @@ env:
   AWS_REGION: us-east-1
   ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.YOUR_AWS_ACCOUNT_ID }}:role/github-workflow-role
   ROLE_SESSION_NAME: GitHub_to_AWS_via_FederatedOIDC
+  PROJECT_NAME: spring
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -78,14 +79,29 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > task-definition.json
+     
+
       - name: Build, tag, and push image to Amazon ECR
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} 
-          ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-spring-repo       
+          ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-repo       
           IMAGE_TAG: ${{ steps.commit.outputs.short }}
+          
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+      - name: Fill in the new image ID in the AWS ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-app
+          image: ${{ steps.build-image.outputs.image }}
 
       # Step 6: Deploy to EKS (Optional for now)
       # - name: Update kube config
