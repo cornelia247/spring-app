@@ -104,12 +104,6 @@ jobs:
           container-name: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-app
           image: ${{ steps.build-image.outputs.image }}
 
-
-      - name: Debug Task Definition File Creation2
-        run: |
-              echo "cating task definition"
-              cat ./task-definition.json
-
       - name: Deploy AWS ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
