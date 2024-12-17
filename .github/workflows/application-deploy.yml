@@ -87,6 +87,12 @@ jobs:
         run: |
             echo "Listing current directory:"
             ls -la
+            
+      - name: Validate JSON
+        run: |
+              echo "Validating task-definition.json:"
+              cat task-definition.json
+              jq empty task-definition.json || exit 1
      
 
       - name: Build, tag, and push image to Amazon ECR
