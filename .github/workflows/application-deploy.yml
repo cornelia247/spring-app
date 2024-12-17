@@ -17,7 +17,33 @@ permissions:
   contents: read # This is required for actions/checkout
 
 jobs:
-  build-and-deploy-to-dev-or-staging:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Run Unit Tests
+        run: mvn test
+  dockerize-and-push-to-dev-or-staging:
     runs-on: ubuntu-latest
     if: github.ref_name == 'staging' || github.ref_name == 'dev' # Only run for dev or staging
 
@@ -33,7 +59,7 @@ jobs:
         id: set-env
         run: |
           echo "ENVIRONMENT=${{ github.ref_name }}" >> $GITHUB_ENV
-          
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -79,7 +105,8 @@ jobs:
       #     sed -i.bak "s|DOCKER_IMAGE|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" manifests/hello-app-deployment.yaml && \
       #     kubectl apply -f manifests/hello-app-deployment.yaml
       #     kubectl apply -f manifests/hello-app-service.yaml
-  build-and-deploy-to-production:
+  dockerize-and-push-to-production:
+    needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref_name == 'main' # Only run for main
 
