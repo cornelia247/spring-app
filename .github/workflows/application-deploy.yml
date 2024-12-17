@@ -86,7 +86,7 @@ jobs:
       - name: Debug Task Definition File Creation
         run: |
             echo "Listing current directory:"
-            ls -la
+            cat ./task-definition.json
      
 
       - name: Build, tag, and push image to Amazon ECR
@@ -100,6 +100,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
       - name: Fill in the new image ID in the AWS ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
