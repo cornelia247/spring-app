@@ -6,6 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @PreAuthorize("hasRole('ROLE_MANAGER')")
 public interface EmployeeRepository extends PagingAndSortingRepository<Employee, Long> {
+	boolean existsByFirstNameAndLastName(String firstName, String lastName);
 
 	@Override
 	@PreAuthorize("#employee?.manager == null or #employee?.manager?.name == authentication?.name")
@@ -20,3 +21,4 @@ public interface EmployeeRepository extends PagingAndSortingRepository<Employee,
 	void delete(@Param("employee") Employee employee);
 
 }
+
