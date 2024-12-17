@@ -84,6 +84,10 @@ jobs:
     needs: plan
     if: github.ref_name == 'staging' || github.ref_name == 'dev'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./infrastructure
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -100,6 +104,10 @@ jobs:
         with:
           terraform_version: ${{env.TF_VERSION}}
 
+      - name: Terraform Init
+        run:
+              terraform init
+
       - name: Apply the Plan
         run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
 
@@ -108,6 +116,10 @@ jobs:
     needs: plan
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./infrastructure
     environment:
       name: production
     steps:
@@ -126,6 +138,10 @@ jobs:
         with:
           terraform_version: ${{env.TF_VERSION}}
 
+      - name: Terraform Init
+        run:
+              terraform init
+
       - name: Terraform Apply 
         run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
 
@@ -137,6 +153,10 @@ jobs:
 
     if: ${{ success() }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./infrastructure
     environment:
       name: destroy
     steps:
@@ -154,6 +174,10 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{env.TF_VERSION}}
+
+      - name: Terraform Init
+        run:
+             terraform init
 
       - name: Terraform Destroy 
         run: terraform destroy -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
