@@ -2,6 +2,8 @@ name: Application Deployment
 
 on:
   push:
+    paths:
+      - "applications/**"
     branches:
       - dev
       - staging
@@ -109,7 +111,7 @@ jobs:
             task-definition: ${{ steps.task-def.outputs.task-definition }}
             service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
             cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
-            wait-for-service-stability: true
+            # wait-for-service-stability: true
 
   dockerize-and-push-to-production:
     needs: build-and-test
@@ -176,4 +178,4 @@ jobs:
               task-definition: ${{ steps.task-def.outputs.task-definition }}
               service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
               cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
-              wait-for-service-stability: true
+              # wait-for-service-stability: true
