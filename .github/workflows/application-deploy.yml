@@ -9,8 +9,12 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.AWS_ACCESS_KEY_ID }}:role/GitHubAction-AssumeRoleWithAction
+  ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.YOUR_AWS_ACCOUNT_ID }}:role/GitHubAction-AssumeRoleWithAction
   ROLE_SESSION_NAME: github-workflow-role
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
 
 jobs:
   build-and-deploy-to-dev-or-staging:
