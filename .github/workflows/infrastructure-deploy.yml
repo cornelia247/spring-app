@@ -2,8 +2,8 @@ name: Infrastructure Deployment
 
 on:
   push:
-    paths:
-      - "infrastructure/**"
+    # paths:
+    #   - "infrastructure/**"
     branches:
       - main
       - staging
