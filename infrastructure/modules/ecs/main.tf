@@ -104,5 +104,9 @@ resource "aws_ecs_service" "main" {
     container_port   = var.app_port
   }
 
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
   depends_on = [aws_iam_role_policy_attachment.ecs_task_execution_role]
 }
