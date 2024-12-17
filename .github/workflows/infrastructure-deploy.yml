@@ -8,37 +8,44 @@ on:
       - dev
 
 env:
-  AWS_REGION: us-east-1  
+  AWS_REGION: us-east-1
+  ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.YOUR_AWS_ACCOUNT_ID }}:role/github-workflow-role
+  ROLE_SESSION_NAME: GitHub_to_AWS_via_FederatedOIDC
+  TF_VERSION: 1.9.8
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+
+permissions:
+  id-token: write 
+  contents: read 
 
 jobs:
   setup:
     name: Setup Environment
     runs-on: ubuntu-latest
+    defaults:
+     run:
+       shell: bash
+       working-directory: ./infrastructure
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.9.8
+          terraform_version: ${{env.TF_VERSION}}
 
-      - name: Set Terraform Variables
-        id: set-vars
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "TF_VAR_FILE=./infrastructure/prod.tfvars" >> $GITHUB_ENV
-          else
-            echo "TF_VAR_FILE=./infrastructure/${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
-          fi
+      - name: Terraform Init
+        run:
+            terraform init
 
   plan:
     name: Terraform Plan
@@ -54,90 +61,95 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.9.8
-          
-      - name: Set Terraform Variables
-        id: set-vars
-        run: |
-            if [[ "${{ github.ref_name }}" == "main" ]]; then
-              echo "TF_VAR_FILE=prod.tfvars" >> $GITHUB_ENV
-            else
-              echo "TF_VAR_FILE=${{ github.ref_name }}.tfvars" >> $GITHUB_ENV
-            fi
+          terraform_version: ${{env.TF_VERSION}}
 
-      - name: Terraform Init
-      
-        run:
-          terraform init
-
-      # - name: Terraform Plan
-      #   run: terraform plan -var-file=${{ github.ref_name }}.tfvars 
+      - name: Terraform Plan
+        run: terraform plan -var-file=${{env.ENVIRONMENT}}.tfvars 
 
   apply:
     name: Terraform Apply
     needs: plan
+    if: github.ref_name == 'staging' || github.ref_name == 'dev'
     runs-on: ubuntu-latest
-    if: ${{ github.ref_name != 'main' }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
-
-      - name: Terraform Init
-        run: terraform init
+          terraform_version: ${{env.TF_VERSION}}
 
       - name: Apply the Plan
-        run: terraform apply tfplan
+        run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
 
   prod-apply:
     name: Terraform Apply for Production
     needs: plan
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
-    if: ${{ github.ref_name == 'main' }}
-
     environment:
       name: production
-      url: https://console.aws.amazon.com
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
+          terraform_version: ${{env.TF_VERSION}}
 
-      - name: Terraform Init
-        run: terraform init
+      - name: Terraform Apply 
+        run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
 
-      - name: Terraform Apply (Requires Approval)
-        run: terraform apply tfplan
+  destroy:
+    name: Terraform Destroy
+    needs:
+        - apply
+        - prod-apply
+
+    if: ${{ success() }}
+    runs-on: ubuntu-latest
+    environment:
+      name: destroy
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{env.TF_VERSION}}
+
+      - name: Terraform Destroy 
+        run: terraform destroy -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve

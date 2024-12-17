@@ -2,62 +2,27 @@ locals {
   env = var.env
   project = var.project_name
 }
-provider "kubernetes" {
-  host    = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
 
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args = [
-      "eks",
-      "get-token",
-      "--cluster-name",
-      module.eks.cluster_name
-    ]
-  }
-}
-
-
-#
-
-
-provider "helm" {
-  kubernetes {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args = [
-        "eks",
-        "get-token",
-        "--cluster-name",
-        module.eks.cluster_name
-      ]
-    }
-  }
-}
-
-
-module "eks" {
-  source = "./modules/eks" 
-  cluster_version = var.cluster_version
-  cluster_name                 = "${local.env}-${local.project}-cluster"
-  env                          = local.env  
-  desired_capacity_on_demand   = var.desired_capacity_on_demand
-  min_capacity_on_demand       = var.min_capacity_on_demand
-  max_capacity_on_demand       = var.max_capacity_on_demand
-  ondemand_instance_types      = var.ondemand_instance_types
+module "ecs" {
+  source = "./modules/ecs" 
+  env = local.env
+  aws_region = var.aws_region
+  app_image =  var.app_image
+  ecs_sg_id = module.vpc.ecs_sg_id  
+  app_count = var.app_count
+  fargate_cpu  = var.fargate_cpu
+  fargate_memory       = var.fargate_memory
+  db_credentials =  module.database.db_credentials
+  app_port      = var.app_port
   private_subnets = module.vpc.private_subnet_ids
   project_name = local.project
   vpc_id = module.vpc.vpc_id
+  ecs_task_execution_role_name = var.ecs_task_execution_role_name
+  alb_tg = module.alb.alb_tg
 
 
 
 }
-
 
 
 module "vpc" {
@@ -81,6 +46,7 @@ module "vpc" {
   eip_name              = "${local.env}-${local.project}-eip"
   ngw_name              = "${local.env}-${local.project}-ngw"
   eks_sg_name           = "${local.env}-${local.project}-eks-sg"
+  app_port = var.app_port
 }
 
 module "ecr" {
@@ -93,14 +59,14 @@ module "database" {
   source = "./modules/database"
   project_name = var.project_name
   env = var.env
-  public_subnet_ids= module.vpc.public_subnet_ids
-  # private_subnet_ids = module.vpc.private_subnet_ids
+  # public_subnet_ids= module.vpc.public_subnet_ids
+  private_subnet_ids = module.vpc.private_subnet_ids
   engine_version = var.engine_version
   instance_class = var.instance_class
   allocated_storage = var.allocated_storage
   db_username = var.db_username
   db_name =  var.db_name
-  eks_sg_id = module.vpc.eks_sg_id
+  db_sg_id = module.vpc.db_sg_id
 }
 
 
@@ -108,9 +74,26 @@ module "database" {
 module "alb" {
   source = "./modules/alb"
   env = var.env
-  oidc_arn = module.eks.oidc_provider_arn
-  oidc_url = module.eks.cluster_oidc_issuer_url
-  cluster_name ="${local.env}-${local.project}-cluster"
-  # project_name = var.project_name
-  # cluster_version = module.eks.cluster_version
+  public_subnet_ids = module.vpc.public_subnet_ids
+  vpc_id = module.vpc.vpc_id
+  app_port = var.app_port
+  project_name = var.project_name
+  lb_sg_id = module.vpc.lb_sg_id
+}
+
+module "autoscaling" {
+  env = local.env
+  source = "./modules/autoscaling"
+  ecs_service_name = module.ecs.ecs_service_name
+  ecs_cluster_name = module.ecs.ecs_cluster_name
+  min_capacity = var.min_capacity
+  max_capacity = var.max_capacity
+  project_name = local.project
+  
+}
+
+module "cloudwatch" {
+  source = "./modules/cloudwatch"
+  env = local.env
+  project_name = local.project
 }

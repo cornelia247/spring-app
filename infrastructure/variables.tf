@@ -16,7 +16,6 @@ variable "pri_cidr_block" {
   type = list(string)
 }
 variable "engine_version" {}
-variable "cluster_version" {}
 variable "instance_class" {}
 variable "allocated_storage" {}
 variable "db_username" {}
@@ -24,17 +23,20 @@ variable "db_name" {
   type = string
 }
 
-
-
-
-
-# # EKS
-variable "ondemand_instance_types" {}
-
-variable "desired_capacity_on_demand" {}
-variable "min_capacity_on_demand" {}
-variable "max_capacity_on_demand" {}
-variable "namespace" {
-  type = string
-  default = "default"
+variable "app_port" {}
+variable "app_image" {
+  default = "nginx:latest"
+  
 }
+
+variable "app_count" {}
+variable "fargate_cpu" {}
+variable "fargate_memory" {}
+variable "ecs_task_execution_role_name" {
+  default = "myEcsTaskExecutionRole"
+}
+variable "min_capacity" {}
+variable "max_capacity" {}
+
+
+

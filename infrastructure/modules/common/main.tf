@@ -147,9 +147,9 @@ resource "aws_route_table_association" "private_rt_association" {
   ]
 }
 
-resource "aws_security_group" "eks_cluster_sg" {
-  name        = var.eks_sg_name
-  description = "Allow specific traffic to EKS cluster and database"
+resource "aws_security_group" "db" {
+  name        = "${var.env}-${var.project_name}-db-sg"
+  description = "Allow specific traffic to database"
 
   vpc_id = aws_vpc.vpc.id
 
@@ -178,7 +178,63 @@ resource "aws_security_group" "eks_cluster_sg" {
   }
 
   tags = {
-    Name        = var.eks_sg_name
+    Name        = "${var.env}-${var.project_name}-db-sg"
+    Project     = var.project_name
+    Environment = var.env
+  }
+}
+
+resource "aws_security_group" "lb" {
+  name        = "${var.env}-${var.project_name}-lb-sg"
+  description = "controls access to the ALB"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = var.app_port
+    to_port     = var.app_port
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name        = "${var.env}-${var.project_name}-lb-sg"
+    Project     = var.project_name
+    Environment = var.env
+  }
+}
+
+resource "aws_security_group" "ecs_tasks" {
+  name        = "${var.env}-${var.project_name}-ecs-sg"
+  description = "allow inbound access from the ALB only"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    protocol        = "tcp"
+    from_port       = var.app_port
+    to_port         = var.app_port
+    security_groups = [aws_security_group.lb.id]
+  }
+
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name        = "${var.env}-${var.project_name}-ecs-sg"
     Project     = var.project_name
     Environment = var.env
   }

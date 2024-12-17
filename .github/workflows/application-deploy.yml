@@ -14,8 +14,8 @@ env:
   PROJECT_NAME: spring
 
 permissions:
-  id-token: write # This is required for requesting the JWT
-  contents: read # This is required for actions/checkout
+  id-token: write 
+  contents: read 
 
 jobs:
   build-and-test:
@@ -50,11 +50,10 @@ jobs:
   dockerize-and-push-to-dev-or-staging:
     runs-on: ubuntu-latest
     needs: build-and-test
+    if: ${{ success() }} && github.ref_name == 'staging' || github.ref_name == 'dev' # Only run for dev or staging
     defaults:
      run:
       working-directory: ./applications
-    if: github.ref_name == 'staging' || github.ref_name == 'dev' # Only run for dev or staging
-
     steps:
       - name: Set short git commit SHA
         id: commit
@@ -112,87 +111,69 @@ jobs:
             cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
             wait-for-service-stability: true
 
-      # Step 6: Deploy to EKS (Optional for now)
-      # - name: Update kube config
-      #   env:
-      #     EKS_CLUSTER_NAME: ${{ env.ENVIRONMENT }}-spring-cluster
-      #   run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-        
-      # - name: Install dependencies
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y jq postgresql-client
-  
-      # - name: Run database and secrets script
-      #   run: |
-      #     chmod +x ./applications/manifests/handle-secrets-and-db.sh
-      #     ./applications/manifests/handle-secrets-and-db.sh
-
-      # - name: Deploy to EKS
-      #   env:
-      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-spring-repository        
-      #     IMAGE_TAG: ${{ steps.commit.outputs.short }}
-      #   run: |
-      #     sed -i.bak "s|DOCKER_IMAGE|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" manifests/hello-app-deployment.yaml && \
-      #     kubectl apply -f manifests/hello-app-deployment.yaml
-      #     kubectl apply -f manifests/hello-app-service.yaml
   dockerize-and-push-to-production:
     needs: build-and-test
+    if: ${{ success() }} && github.ref_name == 'main'
     runs-on: ubuntu-latest
     defaults:
      run:
       working-directory: ./applications
-    if: github.ref_name == 'main' # Only run for main
 
     environment:
       name: production
+
     steps:
-      - name: Set environment variable to prod
-        run: echo "ENVIRONMENT=prod" >> $GITHUB_ENV
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag, and push image to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} 
-          ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-spring-repo       
-          IMAGE_TAG: ${{ steps.commit.outputs.short }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        - name: Set short git commit SHA
+          id: commit
+          uses: prompt/actions-commit-hash@v2
   
-    # Step 6: Deploy to EKS (Optional for now)
-      - name: Update kube config
-        env:
-          EKS_CLUSTER_NAME: ${{ env.ENVIRONMENT }}-spring-cluster
-        run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-        
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq postgresql-client
+        - name: Checkout code
+          uses: actions/checkout@v3
   
-      - name: Run database and secrets script
-        run: |
-          chmod +x ./applications/manifests/handle-secrets-and-db.sh
-          ./applications/manifests/handle-secrets-and-db.sh
-
-    # - name: Deploy to EKS
-    #   env:
-    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-    #     ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-spring-repository        
-    #     IMAGE_TAG: ${{ steps.commit.outputs.short }}
-    #   run: |
-    #     sed -i.bak "s|DOCKER_IMAGE|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" manifests/hello-app-deployment.yaml && \
-    #     kubectl apply -f manifests/hello-app-deployment.yaml
-    #     kubectl apply -f manifests/hello-app-service.yaml
+        - name: Set environment variable dynamically
+          id: set-env
+          run: echo "ENVIRONMENT=prod" >> $GITHUB_ENV
+  
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+            role-session-name: ${{ env.ROLE_SESSION_NAME }}
+            aws-region: ${{ env.AWS_REGION }}
+  
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v1
+  
+        - name: Download task definition
+          run: |
+            aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > ${{ github.workspace }}/task-definition.json
+  
+        - name: Build, tag, and push image to Amazon ECR
+          id: build-image
+          env:
+            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} 
+            ECR_REPOSITORY: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-repo       
+            IMAGE_TAG: ${{ steps.commit.outputs.short }}
+            
+          run: |
+            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+  
+        - name: Fill in the new image ID in the AWS ECS task definition
+          id: task-def
+          
+          uses: aws-actions/amazon-ecs-render-task-definition@v1
+          with:
+            task-definition: task-definition.json
+            container-name: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-app
+            image: ${{ steps.build-image.outputs.image }}
+  
+        - name: Deploy AWS ECS task definition
+          uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+          with:
+              task-definition: ${{ steps.task-def.outputs.task-definition }}
+              service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
+              cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
+              wait-for-service-stability: true
