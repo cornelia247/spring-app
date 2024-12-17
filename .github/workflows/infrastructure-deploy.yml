@@ -152,8 +152,6 @@ jobs:
     needs:
         - apply
         - prod-apply
-
-    if: ${{ success() }}
     runs-on: ubuntu-latest
     defaults:
       run:
