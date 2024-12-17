@@ -79,20 +79,20 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Download task definition
-        run: |
-          aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > ./task-definition.json
+      # - name: Download task definition
+      #   run: |
+      #     aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > ./task-definition.json
 
-      - name: Debug Task Definition File Creation
-        run: |
-            echo "Listing current directory:"
-            ls -la
-            
-      - name: Validate JSON
-        run: |
-              echo "Validating task-definition.json:"
-              cat task-definition.json
-              jq empty task-definition.json || exit 1
+      # - name: Debug Task Definition File Creation
+      #   run: |
+      #       echo "Listing current directory:"
+      #       ls -la
+
+      # - name: Validate JSON
+      #   run: |
+      #         echo "Validating task-definition.json:"
+      #         cat task-definition.json
+      #         jq empty task-definition.json || exit 1
      
 
       - name: Build, tag, and push image to Amazon ECR
@@ -107,9 +107,22 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      - name: Fill in the new image ID in the AWS ECS task definition
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > task-definition.json
+          echo $(cat task-definition.json | jq 'del(
+                    .taskDefinitionArn,
+                    .requiresAttributes,
+                    .compatibilities,
+                    .revision,
+                    .status,
+                    .registeredAt,
+                    .registeredBy
+                )') > task-definition.json
+          cat task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
-        
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
@@ -119,8 +132,8 @@ jobs:
 
       - name: Debug Task Definition File Creation2
         run: |
-              echo "cating task definition"
-              cat ./task-definition.json
+                echo "cating task definition"
+                cat ./task-definition.json
 
       - name: Deploy AWS ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
