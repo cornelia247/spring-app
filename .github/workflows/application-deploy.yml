@@ -82,7 +82,7 @@ jobs:
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-task --query taskDefinition > ./task-definition.json
-          
+
       - name: Debug Task Definition File Creation
         run: |
             echo "Listing current directory:"
@@ -104,7 +104,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: task-definition.json
+          task-definition: ./task-definition.json
           container-name: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-app
           image: ${{ steps.build-image.outputs.image }}
 
