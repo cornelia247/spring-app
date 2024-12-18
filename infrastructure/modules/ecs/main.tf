@@ -101,7 +101,7 @@ resource "aws_secretsmanager_secret" "grafana_admin_password" {
 
 resource "aws_secretsmanager_secret_version" "grafana_admin_password_value" {
   secret_id     = aws_secretsmanager_secret.grafana_admin_password.id
-  secret_string = random_password.grafana_admin_password.result # Replace this with secure input.
+  secret_string = random_password.random.result # Replace this with secure input.
 }
 
 
