@@ -110,10 +110,13 @@ The Terraform templates include components such as:
 ## 5. Deploying with Infrastructure CI/CD Pipeline
 
 ### Configure your Repository Secrets:
-The Infrastructure workflow relies on specific variables and secrets for a successful run. In the `infrastructure-deploy.yml` workflow, the following secrets and variables are required:
-
+The Infrastructure workflow relies on specific variables and secrets for a successful run. In the `infrastructure-deploy.yml` workflow, the following secrets, variables and environments are required:
+#### Secrets
 - `YOUR_AWS_ACCOUNT_ID`
 - `YOUR_AWS_GITHUB_ROLE`
+#### Environments
+- `production`
+- `destroy`
 
 ### How to Configure a Secret in a GitHub Repository:
 1. Navigate to the chosen repository.
@@ -122,6 +125,16 @@ The Infrastructure workflow relies on specific variables and secrets for a succe
 4. Go to the **Secrets** tab and click **New repository secret**.
    - Add `YOUR_AWS_ACCOUNT_ID` as the name and your AWS Account ID as the value, then click **Add secret**.
    - Repeat the same process for `YOUR_AWS_GITHUB_ROLE`.
+  
+### How to Configure Environments in a GitHub Repository:
+1. Navigate to the chosen repository.
+2. Under your repository name, click **Settings**. If you cannot see the "Settings" tab, select the **...** dropdown menu, then click **Settings**.
+3. In the left sidebar, under the **Deployments** section, select **Environments**.
+4. Click **New environment** to create a new environment.
+   - Add the environment name, e.g., `production` or `destroy`.
+5. Configure the environment settings:
+   - **Required Approvals**: Enable this option to add approval rules before workflows can deploy to this environment.
+6. Click **Save** to finalize the environment configuration.
 
 ### Deploying Your Infrastructure:
 - After configuring your `<branch-name>.tfvars` file and adding the required secrets, you can deploy your app by pushing the chosen environment's branch to your GitHub repo.
@@ -160,3 +173,8 @@ The Infrastructure workflow relies on specific variables and secrets for a succe
 
 ## Next Steps
 - Navigate to the host Name outputted by terraform after about 5 minutes to view your application, you can try logging in by using: `greg/turnquist` as credentials 
+
+
+
+## Destroy Resources
+- The `infrastructure-deploy.yml` includes a destroy stage which helps clear all resources created in your cloud environment.  It requires an approval by a reviewer.
