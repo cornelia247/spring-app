@@ -153,10 +153,8 @@ jobs:
   destroy:
     name: Terraform Destroy
     needs:
-        - apply
-        - prod-apply
+        - plan
     runs-on: ubuntu-latest
-    if: success() && (needs.apply.result == 'success' || needs.prod-apply.result == 'success')
     defaults:
       run:
         shell: bash
