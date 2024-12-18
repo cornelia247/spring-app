@@ -144,8 +144,8 @@ jobs:
           terraform_version: ${{env.TF_VERSION}}
 
       - name: Terraform Init
-        run:
-              terraform init
+        run: terraform init
+          
 
       - name: Terraform Apply 
         run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
@@ -178,8 +178,7 @@ jobs:
           terraform_version: ${{env.TF_VERSION}}
 
       - name: Terraform Init
-        run:
-             terraform init
+        run: terraform init
 
       - name: Terraform Destroy 
         run: terraform destroy -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
