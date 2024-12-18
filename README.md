@@ -27,7 +27,7 @@ The Terraform templates include components such as:
 ## 2. Prerequisites
 
 - AWS CLI 
-- Ensure the CI/CD workflow has the necessary permissions to access your AWS environment using OpenID Connect (OIDC). OIDC allows your GitHub Actions workflows to access resources in Amazon Web Services (AWS), without needing to store the AWS credentials as long-lived GitHub secrets. You can check out this github [documentation]([https://www.example.com](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)) on how to set up OIDC on your cloud environment.
+- Ensure the CI/CD workflow has the necessary permissions to access your AWS environment using OpenID Connect (OIDC). OIDC allows your GitHub Actions workflows to access resources in Amazon Web Services (AWS), without needing to store the AWS credentials as long-lived GitHub secrets. You can check out this github [documentation](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) on how to set up OIDC on your cloud environment.
 
 ---
 
