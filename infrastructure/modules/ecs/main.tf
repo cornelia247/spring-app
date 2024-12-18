@@ -202,7 +202,7 @@ resource "aws_ecs_task_definition" "grafana_task" {
 
 resource "aws_ecs_service" "grafana_service" {
   name            = "${var.env}-grafana-service"
-  cluster         = aws_ecs_cluster.my_cluster.id
+  cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.grafana_task.arn
   launch_type     = "FARGATE"
   desired_count   = 1
