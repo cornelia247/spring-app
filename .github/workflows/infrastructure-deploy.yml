@@ -9,7 +9,7 @@ on:
       - staging
       - dev
 
-  workflow_dispatch:
+  # workflow_dispatch:
 
 
 env:
@@ -156,7 +156,7 @@ jobs:
         - apply
         - prod-apply
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    if: success() && (needs.apply.result == 'success' || needs.prod-apply.result == 'success')
     defaults:
       run:
         shell: bash
