@@ -40,7 +40,7 @@ The cloud architecture includes the following components:
 
 ### 3.2 CI/CD Pipelines
 
-![CI/CD Pipelines](pipelines.drawio.jpeg)
+![CI/CD Pipelines](pipelines.drawio.png)
 
 The solution includes two pipelines: **Infrastructure CI/CD Pipeline** and **Application CI/CD Pipeline**.
 
