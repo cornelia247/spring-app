@@ -6,5 +6,6 @@ target/
 .terraform/*
 errored.tfstate
 .terraform
+.vscode/*
 
 

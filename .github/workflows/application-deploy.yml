@@ -11,9 +11,9 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.YOUR_AWS_ACCOUNT_ID }}:role/github-workflow-role
+  ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.YOUR_AWS_ACCOUNT_ID }}:role/${{ secrets.YOUR_AWS_GITHUB_ROLE }}
   ROLE_SESSION_NAME: GitHub_to_AWS_via_FederatedOIDC
-  PROJECT_NAME: spring
+  PROJECT_NAME: ${{ vars.PROJECT_NAME }}
 
 permissions:
   id-token: write 
