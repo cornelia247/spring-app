@@ -21,15 +21,18 @@ public class SpringDataRestEventHandler {
 	@HandleBeforeCreate
 	@HandleBeforeSave
 	public void applyUserInformationUsingSecurityContext(Employee employee) {
-
+	
 		String name = SecurityContextHolder.getContext().getAuthentication().getName();
-		Manager manager = this.managerRepository.findByName(name);
-		if (manager == null) {
-			Manager newManager = new Manager();
-			newManager.setName(name);
-			newManager.setRoles(new String[]{"ROLE_MANAGER"});
-			manager = this.managerRepository.save(newManager);
-		}
+	
+		// Use Optional to find an existing manager or create a new one
+		Manager manager = this.managerRepository.findByName(name)
+				.orElseGet(() -> {
+					Manager newManager = new Manager();
+					newManager.setName(name);
+					newManager.setRoles(new String[]{"ROLE_MANAGER"});
+					return this.managerRepository.save(newManager);
+				});
+	
 		employee.setManager(manager);
 	}
 }
