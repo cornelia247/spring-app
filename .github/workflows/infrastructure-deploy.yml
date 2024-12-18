@@ -36,9 +36,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       
-      - name: cred
-        run:
-            cat ${{ vars.YOUR_AWS_GITHUB_ROLE }}
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
