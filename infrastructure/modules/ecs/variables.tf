@@ -13,3 +13,4 @@ variable "db_credentials" {}
 variable "app_count" {}
 variable "ecs_sg_id" {}
 variable "alb_tg" {}
+variable "grafana_tg" {}

@@ -4,3 +4,6 @@ output "alb_hostname" {
 output "alb_tg" {
   value = aws_alb_target_group.app.id
 }
+output "grafana_tg" {
+  value = aws_alb_target_group.grafana.id
+}

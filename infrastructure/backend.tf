@@ -6,10 +6,10 @@ terraform {
     }
   }
   backend "s3" {
-    bucket         = "" # Example: "spring-time-terraform-backend-bucket". Name of the S3 bucket for state storage.
-    region         = "" # Example: "us-east-1". AWS region where the S3 bucket is located.
-    key            = "" # Example: "newterraform/state". Path to store the Terraform state file in the bucket.
-    dynamodb_table = "" # Example: "terraform-lock-table". Name of the DynamoDB table for state locking.
+    bucket         = "spring-time-terraform-backend-bucket" # Example: "spring-time-terraform-backend-bucket". Name of the S3 bucket for state storage.
+    region         = "us-east-1" # Example: "us-east-1". AWS region where the S3 bucket is located.
+    key            = "newterraform/state" # Example: "newterraform/state". Path to store the Terraform state file in the bucket.
+    dynamodb_table = "terraform-lock-table" # Example: "terraform-lock-table". Name of the DynamoDB table for state locking.
 }
 }
 

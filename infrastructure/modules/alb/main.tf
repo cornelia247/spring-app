@@ -45,3 +45,38 @@ resource "aws_alb_listener" "app" {
     type             = "forward"
   }
 }
+
+
+
+
+
+///GRAFANA///
+resource "aws_alb_target_group" "grafana" {
+  name        = "${var.env}-grafana-tg"
+  port        = "3000"
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  health_check {
+    path     = "/"
+    port     = "3000"
+    protocol = "HTTP"
+  }
+  tags = {
+    Name        = "${var.env}-grafana-tg"
+    Environment = var.env
+  }
+}
+
+# Redirect all traffic from the ALB to the target group
+resource "aws_alb_listener" "grafana" {
+  load_balancer_arn = aws_alb.main.id
+  port              = 3000
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = aws_alb_target_group.grafana.id
+    type             = "forward"
+  }
+}
