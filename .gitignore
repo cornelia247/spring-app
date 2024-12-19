@@ -8,5 +8,6 @@ errored.tfstate
 .terraform
 .vscode/*
 .vscode
+package-lock.json
 
 
