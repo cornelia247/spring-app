@@ -19,9 +19,6 @@ module "ecs" {
   vpc_id = module.vpc.vpc_id
   ecs_task_execution_role_name = var.ecs_task_execution_role_name
   alb_tg = module.alb.alb_tg
-  grafana_tg = module.alb.grafana_tg
-
-
 
 }
 
