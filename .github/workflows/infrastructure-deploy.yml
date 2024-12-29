@@ -152,35 +152,35 @@ jobs:
       - name: Terraform Apply 
         run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
 
-  destroy:
-    name: Terraform Destroy
-    needs:
-        - plan
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./infrastructure
-    environment:
-      name: destroy
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  # destroy:
+  #   name: Terraform Destroy
+  #   needs:
+  #       - plan
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #       working-directory: ./infrastructure
+  #   environment:
+  #     name: destroy
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
-          role-session-name: ${{ env.ROLE_SESSION_NAME }}
-          aws-region: ${{ env.AWS_REGION }}
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+  #         role-session-name: ${{ env.ROLE_SESSION_NAME }}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{env.TF_VERSION}}
+  #     - name: Install Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #       with:
+  #         terraform_version: ${{env.TF_VERSION}}
 
-      - name: Terraform Init
-        run: terraform init
+  #     - name: Terraform Init
+  #       run: terraform init
 
-      - name: Terraform Destroy 
-        run: terraform destroy -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
+  #     - name: Terraform Destroy 
+  #       run: terraform destroy -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
