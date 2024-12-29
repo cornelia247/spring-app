@@ -131,6 +131,7 @@ jobs:
           fi
       - name: Get Argo CD DNS and Admin Password
         run: |
+            kubectl get svc argocd-server -n argocd 
             # Retrieve the DNS (Load Balancer address)
             if kubectl get svc argocd-server -n argocd >/dev/null 2>&1; then
               ARGOCD_SERVER_DNS=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
