@@ -2,12 +2,13 @@ name: Deploy Application And Argo CD
 
 on:
     workflow_run:
-      workflows: ["Infrastructure Deployment"]
+      workflows:
+      - Infrastructure Deployment
       types:
         - completed
     push:
       paths:
-        - "argocd/**"
+        - "applications/**"
         - ".github/workflows/application-deploy.yml"
       branches:
         - dev
