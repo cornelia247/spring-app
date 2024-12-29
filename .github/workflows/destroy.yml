@@ -9,6 +9,11 @@ env:
   ROLE_SESSION_NAME: GitHub_to_AWS_via_FederatedOIDC
   TF_VERSION: 1.9.8
   ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+  
+permissions:
+  id-token: write 
+  contents: read 
+
 
 jobs:
  destroy:
