@@ -128,10 +128,11 @@ jobs:
 
             kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
             kubectl wait --namespace argocd --for=condition=ready pod --selector=app.kubernetes.io/name=argocd-server --timeout=300s
-            kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+            
           fi
       - name: Get Argo CD DNS and Admin Password
         run: |
+            kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
             kubectl get svc argocd-server -n argocd 
             # Retrieve the DNS (Load Balancer address)
             if kubectl get svc argocd-server -n argocd >/dev/null 2>&1; then
