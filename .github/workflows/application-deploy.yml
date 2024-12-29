@@ -119,7 +119,7 @@ jobs:
       - name: Install Argo CD
         run: |
           if kubectl get namespace argocd >/dev/null 2>&1; then
-            echo "Argo CD namespace already exists. Skipping installation."
+            echo "Argo CD namespace already exists. Skipping installations."
           else
             echo "Installing Argo CD..."
             kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
@@ -142,10 +142,10 @@ jobs:
             else
               echo "Argo CD admin secret not found. Password not available."
             fi
-      - name: Configure Argo CD Repositories
-        run: |
-          kubectl apply -f ./argocd/repositories.yaml
+      # - name: Configure Argo CD Repositories
+      #   run: |
+      #     kubectl apply -f ./argocd/repositories.yaml
 
-      - name: Apply Argo CD Applications
-        run: |
-          kubectl apply -f ./argocd/applications.yaml
+      # - name: Apply Argo CD Applications
+      #   run: |
+      #     kubectl apply -f ./argocd/applications.yaml
