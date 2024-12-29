@@ -1,5 +1,5 @@
 # General Environment Configuration
-env                   = "dev" # Example: "dev", "staging", or "prod" to indicate environment type.
+env                   = "eks" # Example: "dev", "staging", or "prod" to indicate environment type.
 aws_region            = "us-east-1" # Example: "us-east-1" or "us-west-2".
 
 vpc_cidr_block        = "10.16.0.0/16" # Example: "10.16.0.0/16". Plan CIDR blocks to avoid IP conflicts.
