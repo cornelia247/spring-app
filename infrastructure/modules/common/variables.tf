@@ -22,5 +22,3 @@ variable "public_rt_name" {}
 variable "private_rt_name" {}
 variable "eip_name" {}
 variable "ngw_name" {}
-variable "eks_sg_name" {}
-variable "app_port" {}

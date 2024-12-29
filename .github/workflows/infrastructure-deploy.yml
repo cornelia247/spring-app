@@ -9,6 +9,7 @@ on:
       - main
       - staging
       - dev
+      - eks
 
   # workflow_dispatch:
 

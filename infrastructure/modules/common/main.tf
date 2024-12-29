@@ -18,7 +18,7 @@ resource "aws_internet_gateway" "igw" {
   tags = {
     Name                                          = var.igw_name
     Environment                                           = var.env
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 
   depends_on = [aws_vpc.vpc]
@@ -35,7 +35,7 @@ resource "aws_subnet" "public_subnet" {
     Name                                          = "${var.pub_sub_name}-${count.index + 1}"
     Project = var.project_name
     Environment  = var.env
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/elb"                      = "1"
   }
 
@@ -54,7 +54,7 @@ resource "aws_subnet" "private_subnet" {
     Name                                          = "${var.pri_sub_name}-${count.index + 1}"
     Project = var.project_name
     Environment  = var.env
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/internal_elb"             = "1"
   }
 
@@ -184,58 +184,58 @@ resource "aws_security_group" "db" {
   }
 }
 
-resource "aws_security_group" "lb" {
-  name        = "${var.env}-${var.project_name}-lb-sg"
-  description = "controls access to the ALB"
-  vpc_id      = aws_vpc.vpc.id
+# resource "aws_security_group" "lb" {
+#   name        = "${var.env}-${var.project_name}-lb-sg"
+#   description = "controls access to the ALB"
+#   vpc_id      = aws_vpc.vpc.id
 
-  ingress {
-    protocol    = "tcp"
-    from_port   = var.app_port
-    to_port     = var.app_port
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   ingress {
+#     protocol    = "tcp"
+#     from_port   = var.app_port
+#     to_port     = var.app_port
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#   ingress {
+#     protocol    = "tcp"
+#     from_port   = 80
+#     to_port     = 80
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  egress {
-    protocol    = "-1"
-    from_port   = 0
-    to_port     = 0
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name        = "${var.env}-${var.project_name}-lb-sg"
-    Project     = var.project_name
-    Environment = var.env
-  }
-}
+#   egress {
+#     protocol    = "-1"
+#     from_port   = 0
+#     to_port     = 0
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#   tags = {
+#     Name        = "${var.env}-${var.project_name}-lb-sg"
+#     Project     = var.project_name
+#     Environment = var.env
+#   }
+# }
 
-resource "aws_security_group" "ecs_tasks" {
-  name        = "${var.env}-${var.project_name}-ecs-sg"
-  description = "allow inbound access from the ALB only"
-  vpc_id      = aws_vpc.vpc.id
+# resource "aws_security_group" "ecs_tasks" {
+#   name        = "${var.env}-${var.project_name}-ecs-sg"
+#   description = "allow inbound access from the ALB only"
+#   vpc_id      = aws_vpc.vpc.id
 
-  ingress {
-    protocol        = "tcp"
-    from_port       = var.app_port
-    to_port         = var.app_port
-    security_groups = [aws_security_group.lb.id]
-  }
+#   ingress {
+#     protocol        = "tcp"
+#     from_port       = var.app_port
+#     to_port         = var.app_port
+#     security_groups = [aws_security_group.lb.id]
+#   }
 
-  egress {
-    protocol    = "-1"
-    from_port   = 0
-    to_port     = 0
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name        = "${var.env}-${var.project_name}-ecs-sg"
-    Project     = var.project_name
-    Environment = var.env
-  }
-}
+#   egress {
+#     protocol    = "-1"
+#     from_port   = 0
+#     to_port     = 0
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#   tags = {
+#     Name        = "${var.env}-${var.project_name}-ecs-sg"
+#     Project     = var.project_name
+#     Environment = var.env
+#   }
+# }

@@ -1,0 +1,61 @@
+name: Destroy
+
+on: 
+  workflow_dispatch:
+    
+env:
+  AWS_REGION: us-east-1
+  ROLE_TO_ASSUME: arn:aws:iam::${{ secrets.YOUR_AWS_ACCOUNT_ID }}:role/${{ vars.YOUR_AWS_GITHUB_ROLE }}
+  ROLE_SESSION_NAME: GitHub_to_AWS_via_FederatedOIDC
+  TF_VERSION: 1.9.8
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+
+jobs:
+ destroy:
+   name: "Delete app and infrastructure"
+   runs-on: ubuntu-latest
+   defaults:
+     run:
+       shell: bash
+       # We keep Terraform files in the terraform directory.
+       working-directory: ./terraform
+    
+   steps:
+     - name: Checkout the repository to the runner
+       uses: actions/checkout@v2
+ 
+     - name: Setup Terraform with specified version on the runner
+       uses: hashicorp/setup-terraform@v3
+       with:
+         terraform_version: ${{env.TF_VERSION}}
+         terraform_wrapper: false
+    
+     - name: Configure AWS credentials
+       uses: aws-actions/configure-aws-credentials@v4
+       with:
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+    
+     - name: Install kubectl
+       run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+     - name: Update kubeconfig
+       run: aws eks update-kubeconfig --name ${{env.ENVIRONMENT}}-${{ vars.PROJECT_NAME }}-cluster --region ${{ env.AWS_REGION }}
+      
+     - name: Deploy application
+       run: | 
+          kubectl delete -f ../argocd/config/argocd-app.yaml || true
+          kubectl delete namespace argocd || true
+     
+     - name: Terraform init
+       id: init
+       run: terraform init
+
+     - name: Terraform destroy
+       id: destroy
+       run: terraform destroy -auto-approve
+      

@@ -23,20 +23,15 @@ variable "db_name" {
   type = string
 }
 
-variable "app_port" {}
-variable "app_image" {
-  default = "nginx:latest"
-  
+variable "argocd_server_insecure" {
+  type = bool
+  default = true
 }
 
-variable "app_count" {}
-variable "fargate_cpu" {}
-variable "fargate_memory" {}
-variable "ecs_task_execution_role_name" {
-  default = "myEcsTaskExecutionRole"
-}
-variable "min_capacity" {}
-variable "max_capacity" {}
+
+variable "desired_size" {}
+variable "min_size" {}
+variable "max_size" {}
 
 
 
