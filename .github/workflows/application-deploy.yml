@@ -132,7 +132,7 @@ jobs:
         run: |
             # Retrieve the DNS (Load Balancer address)
             if kubectl get svc argocd-server -n argocd >/dev/null 2>&1; then
-              ARGOCD_SERVER_DNS=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+              ARGOCD_SERVER_DNS=$(kubectl get svc argocd-server -n argocd')
               echo "Argo CD Server DNS: $ARGOCD_SERVER_DNS"
             else
               echo "Argo CD service not found. DNS not available."
