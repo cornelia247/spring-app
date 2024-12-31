@@ -19,8 +19,9 @@ The Terraform templates include components such as:
 - CloudWatch monitoring
 - Virtual Private Clouds (VPCs)
 - Security groups
-- ECS tasks
-- A database
+- Elastic Container Service tasks
+- A RDS database
+- Amazon Elastic Container Registry (ECR)
 
 ---
 
