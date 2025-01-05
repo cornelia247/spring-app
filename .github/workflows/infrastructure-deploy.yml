@@ -123,11 +123,11 @@ jobs:
         id: tf_outputs
         run: |
           EFS_ID=$(terraform output -raw efs_file_system_id)
-          APP_LOG_GROUP=$(terraform output -raw app_log_group 2>/dev/null || echo "")
-          GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group 2>/dev/null || echo "")
-          ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name 2>/dev/null || echo "")
-          ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name 2>/dev/null || echo "")
-          ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name 2>/dev/null || echo "")
+          APP_LOG_GROUP=$(terraform output -raw app_log_group)
+          GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group)
+          ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
+          ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name)
+          ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name)
 
           echo "EFS_ID=${EFS_ID}" >> $GITHUB_ENV
           echo "APP_LOG_GROUP=${APP_LOG_GROUP}" >> $GITHUB_ENV
@@ -142,17 +142,14 @@ jobs:
       - name: Replace Placeholders in Datasource and Dashboard
         run: |
          # Replace placeholders in datasource.yaml
-         pwd
-         ls
-         sed -i "s/\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/datasource.yaml
-         
+          sed -i "s|\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/datasource.yaml
          # Replace placeholders in dashboard.json
-         sed -i "s/\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/dashboard.json
-         sed -i "s/\${LOG_GROUP_1}/${{ env.APP_LOG_GROUP }}/g" ./templates/monitoring/dashboard.json
-         sed -i "s/\${LOG_GROUP_2}/${{ env.GRAFANA_LOG_GROUP }}/g" ./templates/monitoring/dashboard.json
-         sed -i "s/\${ECS_CLUSTER_NAME}/${{ env.ECS_CLUSTER_NAME }}/g" ./templates/monitoring/dashboard.json
-         sed -i "s/\${ECS_SERVICE_NAME_1}/${{ env.ECS_APP_SERVICE_NAME }}/g" ./templates/monitoring/dashboard.json
-         sed -i "s/\${ECS_SERVICE_NAME_2}/${{ env.ECS_GRAFANA_SERVICE_NAME }}/g" ./templates/monitoring/dashboard.json
+          sed -i "s|\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/dashboard.json
+          sed -i "s|\${LOG_GROUP_1}|${{ env.APP_LOG_GROUP }}|g" ./templates/monitoring/dashboard.json
+          sed -i "s|\${LOG_GROUP_2}|${{ env.GRAFANA_LOG_GROUP }}|g" ./templates/monitoring/dashboard.json
+          sed -i "s|\${ECS_CLUSTER_NAME}|${{ env.ECS_CLUSTER_NAME }}|g" ./templates/monitoring/dashboard.json
+          sed -i "s|\${ECS_SERVICE_NAME_1}|${{ env.ECS_APP_SERVICE_NAME }}|g" ./templates/monitoring/dashboard.json
+          sed -i "s|\${ECS_SERVICE_NAME_2}|${{ env.ECS_GRAFANA_SERVICE_NAME }}|g" ./templates/monitoring/dashboard.json
 
      # Step 3: Copy Files to EFS
       - name: Copy Datasource and Dashboard to EFS
