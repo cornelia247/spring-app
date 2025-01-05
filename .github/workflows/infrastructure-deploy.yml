@@ -110,6 +110,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{env.TF_VERSION}}
+          terraform_wrapper: false
 
       - name: Terraform Init
         run:
@@ -121,7 +122,7 @@ jobs:
       - name: Get Terraform Outputs
         id: tf_outputs
         run: |
-          EFS_ID=$(terraform output -raw efs_file_system_id 2>/dev/null || echo "")
+          EFS_ID=$(terraform output -raw efs_file_system_id)
           APP_LOG_GROUP=$(terraform output -raw app_log_group 2>/dev/null || echo "")
           GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group 2>/dev/null || echo "")
           ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name 2>/dev/null || echo "")
