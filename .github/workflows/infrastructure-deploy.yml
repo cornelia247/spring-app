@@ -121,12 +121,12 @@ jobs:
       - name: Get Terraform Outputs
         id: tf_outputs
         run: |
-          EFS_ID=$(terraform output -raw efs_file_system_id)
-          APP_LOG_GROUP=$(terraform output -raw app_log_group)
-          GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group)
-          ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
-          ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name)
-          ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name)
+          EFS_ID=$(terraform output -raw efs_file_system_id 2>/dev/null | grep -v "::debug::")
+          APP_LOG_GROUP=$(terraform output -raw app_log_group 2>/dev/null | grep -v "::debug::")
+          GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group 2>/dev/null | grep -v "::debug::")
+          ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name 2>/dev/null | grep -v "::debug::")
+          ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name 2>/dev/null | grep -v "::debug::")
+          ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name 2>/dev/null | grep -v "::debug::")
 
           echo "EFS_ID=${EFS_ID}" >> $GITHUB_ENV
           echo "APP_LOG_GROUP=${APP_LOG_GROUP}" >> $GITHUB_ENV
