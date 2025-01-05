@@ -151,11 +151,14 @@ jobs:
           sed -i "s|\${ECS_CLUSTER_NAME}|${{ env.ECS_CLUSTER_NAME }}|g" ./templates/monitoring/dashboard.json
           sed -i "s|\${ECS_SERVICE_NAME_1}|${{ env.ECS_APP_SERVICE_NAME }}|g" ./templates/monitoring/dashboard.json
           sed -i "s|\${ECS_SERVICE_NAME_2}|${{ env.ECS_GRAFANA_SERVICE_NAME }}|g" ./templates/monitoring/dashboard.json
+          cat ./templates/monitoring/datasource.yaml
 
      # Step 3: Copy Files to EFS
       - name: Copy Datasource and Dashboard to EFS
         run: |
-         sudo apt-get update && sudo apt-get install -y amazon-efs-utils
+         # Download and install amazon-efs-utils
+          sudo wget https://amazon-efs-utils.s3.amazonaws.com/ubuntu/latest/amazon-efs-utils-ubuntu-latest.deb
+          sudo apt-get -y install ./amazon-efs-utils-ubuntu-latest.deb
          sudo mkdir -p /mnt/efs
          sudo mount -t efs ${EFS_ID}:/ /mnt/efs
          sudo cp ./templates/monitoring/datasource.yaml /mnt/efs/grafana/provisioning/datasources/
