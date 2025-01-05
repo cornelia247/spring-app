@@ -142,9 +142,10 @@ jobs:
       - name: Replace Placeholders in Datasource and Dashboard
         run: |
          # Replace placeholders in datasource.yaml
-          sed -i "s|\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/datasource.yaml
-         # Replace placeholders in dashboard.json
-          sed -i "s|\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/dashboard.json
+          sed -i "s|\${AWS_REGION}|${{ env.AWS_REGION }}|g" ./templates/monitoring/datasource.yaml
+
+          # Replace placeholders in dashboard.json
+          sed -i "s|\${AWS_REGION}|${{ env.AWS_REGION }}|g" ./templates/monitoring/dashboard.json
           sed -i "s|\${LOG_GROUP_1}|${{ env.APP_LOG_GROUP }}|g" ./templates/monitoring/dashboard.json
           sed -i "s|\${LOG_GROUP_2}|${{ env.GRAFANA_LOG_GROUP }}|g" ./templates/monitoring/dashboard.json
           sed -i "s|\${ECS_CLUSTER_NAME}|${{ env.ECS_CLUSTER_NAME }}|g" ./templates/monitoring/dashboard.json
