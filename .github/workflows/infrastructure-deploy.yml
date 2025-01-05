@@ -89,7 +89,7 @@ jobs:
   apply:
     name: Terraform Apply
     needs: plan
-    if: github.ref_name == 'staging' || github.ref_name == 'dev'
+    if: github.ref_name != 'main'
     runs-on: ubuntu-latest
     defaults:
       run:
