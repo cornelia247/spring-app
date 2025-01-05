@@ -135,8 +135,8 @@ jobs:
           echo "ECS_CLUSTER_NAME=${ECS_CLUSTER_NAME}" >> $GITHUB_ENV
           echo "ECS_APP_SERVICE_NAME=${ECS_APP_SERVICE_NAME}" >> $GITHUB_ENV
           echo "ECS_GRAFANA_SERVICE_NAME=${ECS_GRAFANA_SERVICE_NAME}" >> $GITHUB_ENV
-          echo ${{ env.EFS_ID }}
-          echo ${{ env.ECS_APP_SERVICE_NAME }}
+          echo "This is the EFS ID: $EFS_ID"
+          echo "This is the ECS App Service Name: $ECS_APP_SERVICE_NAME"
 
      # Step 2: Replace Placeholders in Datasource and Dashboard
       - name: Replace Placeholders in Datasource and Dashboard
