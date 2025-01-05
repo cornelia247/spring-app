@@ -6,6 +6,13 @@ resource "random_password" "db_password" {
   override_special = "!#$%^&*()-_=+[]{}<>?~"
 }
 
+# Fetch the DB credentials from Secrets Manager
+data "aws_secretsmanager_secret_version" "db_credentials" {
+  secret_id = aws_secretsmanager_secret.this.arn
+
+  depends_on = [ aws_secretsmanager_secret_version.this ]
+}
+
 # Database Subnet Group
 resource "aws_db_subnet_group" "this" {
   name       = "${var.env}-${var.project_name}-db-subnet-group"
@@ -45,7 +52,7 @@ resource "aws_db_instance" "this" {
 resource "aws_secretsmanager_secret" "this" {
   name        = "${var.env}-${var.project_name}-db-credentials"
   description = "Stores database credentials for ${var.env}-${var.project_name}-db"
-  recovery_window_in_days = 0
+  recovery_window_in_days = var.recovery_window
   tags = {
     Name = "${var.env}-${var.project_name}-db-credentials"
     Project = var.project_name

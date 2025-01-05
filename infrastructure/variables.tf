@@ -37,6 +37,7 @@ variable "ecs_task_execution_role_name" {
 }
 variable "min_capacity" {}
 variable "max_capacity" {}
+variable "recovery_window" {}
 
 
 

@@ -14,3 +14,4 @@ variable "db_sg_id" {}
 variable "db_name" {
   type = string
 }
+variable "recovery_window" {}

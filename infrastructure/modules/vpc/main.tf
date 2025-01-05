@@ -201,6 +201,12 @@ resource "aws_security_group" "lb" {
     to_port     = 80
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    protocol    = "tcp"
+    from_port   = 3000
+    to_port     = 3000
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   egress {
     protocol    = "-1"
@@ -217,13 +223,25 @@ resource "aws_security_group" "lb" {
 
 resource "aws_security_group" "ecs_tasks" {
   name        = "${var.env}-${var.project_name}-ecs-sg"
-  description = "allow inbound access from the ALB only"
+  description = "allow inbound access from the ALB and EFS only"
   vpc_id      = aws_vpc.vpc.id
 
   ingress {
     protocol        = "tcp"
+    from_port       = "2049"
+    to_port         = "2049"
+    security_groups = [aws_security_group.efs.id]
+  }
+  ingress {
+    protocol        = "tcp"
     from_port       = var.app_port
     to_port         = var.app_port
+    security_groups = [aws_security_group.lb.id]
+  }
+  ingress {
+    protocol        = "tcp"
+    from_port       = "3000"
+    to_port         = "3000"
     security_groups = [aws_security_group.lb.id]
   }
 
@@ -235,6 +253,32 @@ resource "aws_security_group" "ecs_tasks" {
   }
   tags = {
     Name        = "${var.env}-${var.project_name}-ecs-sg"
+    Project     = var.project_name
+    Environment = var.env
+  }
+}
+
+
+# Security Group for EFS
+resource "aws_security_group" "efs" {
+  vpc_id = aws_vpc.vpc.id
+
+  ingress {
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.env}-${var.project_name}-efs-sg"
     Project     = var.project_name
     Environment = var.env
   }

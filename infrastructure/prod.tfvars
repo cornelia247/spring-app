@@ -31,3 +31,4 @@ allocated_storage     = "" # Example: 20. Minimum storage in GB for development 
 
 db_username           = "" # Example: "postgres". Use a strong username; "postgres" is the default.
 db_name               = "" # Example: "postgres". Use the default PostgreSQL database created.
+recovery_window       =  # Example:  0. Days the secret will be kept after deleting, use a higher number for production 7
