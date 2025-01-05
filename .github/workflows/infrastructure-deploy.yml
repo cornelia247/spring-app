@@ -134,11 +134,15 @@ jobs:
           echo "ECS_CLUSTER_NAME=${ECS_CLUSTER_NAME}" >> $GITHUB_ENV
           echo "ECS_APP_SERVICE_NAME=${ECS_APP_SERVICE_NAME}" >> $GITHUB_ENV
           echo "ECS_GRAFANA_SERVICE_NAME=${ECS_GRAFANA_SERVICE_NAME}" >> $GITHUB_ENV
+          echo "EFS_ID"
+          echo "ECS_APP_SERVICE_NAME"
 
      # Step 2: Replace Placeholders in Datasource and Dashboard
       - name: Replace Placeholders in Datasource and Dashboard
         run: |
          # Replace placeholders in datasource.yaml
+         pwd
+         ls
          sed -i "s/\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/datasource.yaml
          
          # Replace placeholders in dashboard.json
@@ -158,6 +162,7 @@ jobs:
          sudo cp ./templates/monitoring/datasource.yaml /mnt/efs/grafana/provisioning/datasources/
          sudo cp ./templates/monitoring/dashboard.json /mnt/efs/grafana/provisioning/dashboards/
          sudo umount /mnt/efs
+         
 
      # Step 4: Restart Grafana ECS Task
       - name: Restart Grafana ECS Task
