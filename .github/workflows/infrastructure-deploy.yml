@@ -156,8 +156,12 @@ jobs:
       - name: Copy Datasource and Dashboard to EFS
         run: |
          # Download and install amazon-efs-utils
-          sudo wget https://amazon-efs-utils.s3.amazonaws.com/ubuntu/latest/amazon-efs-utils-ubuntu-latest.deb
-          sudo apt-get -y install ./amazon-efs-utils-ubuntu-latest.deb
+          sudo apt-get update
+          sudo apt-get -y install git binutils rustc cargo pkg-config libssl-dev gettext
+          git clone https://github.com/aws/efs-utils
+          cd efs-utils
+          ./build-deb.sh
+          sudo apt-get -y install ./build/amazon-efs-utils*deb
          echo "mkdir"
          sudo mkdir -p /mnt/efs
          echo "mount"
