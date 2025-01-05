@@ -9,6 +9,7 @@ on:
       - main
       - staging
       - dev
+      - grafana
 
   # workflow_dispatch:
 
@@ -116,6 +117,45 @@ jobs:
 
       - name: Apply the Plan
         run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
+       # Step 1: Fetch Terraform Outputs
+      - name: Get Terraform Outputs
+        id: tf_outputs
+        run: |
+         echo "EFS_ID=$(terraform output -raw efs_file_system_id)" >> $GITHUB_ENV
+         echo "APP_LOG_GROUP=$(terraform output -raw app_log_group)" >> $GITHUB_ENV
+         echo "GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group)" >> $GITHUB_ENV
+         echo "ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_ENV
+         echo "ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name)" >> $GITHUB_ENV
+         echo "ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name)" >> $GITHUB_ENV
+
+     # Step 2: Replace Placeholders in Datasource and Dashboard
+      - name: Replace Placeholders in Datasource and Dashboard
+        run: |
+         # Replace placeholders in datasource.yaml
+         sed -i "s/\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/datasource.yaml
+         
+         # Replace placeholders in dashboard.json
+         sed -i "s/\${AWS_REGION}/${{ env.AWS_REGION }}/g" ./templates/monitoring/dashboard.json
+         sed -i "s/\${LOG_GROUP_1}/${{ env.APP_LOG_GROUP }}/g" ./templates/monitoring/dashboard.json
+         sed -i "s/\${LOG_GROUP_2}/${{ env.GRAFANA_LOG_GROUP }}/g" ./templates/monitoring/dashboard.json
+         sed -i "s/\${ECS_CLUSTER_NAME}/${{ env.ECS_CLUSTER_NAME }}/g" ./templates/monitoring/dashboard.json
+         sed -i "s/\${ECS_SERVICE_NAME_1}/${{ env.ECS_APP_SERVICE_NAME }}/g" ./templates/monitoring/dashboard.json
+         sed -i "s/\${ECS_SERVICE_NAME_2}/${{ env.ECS_GRAFANA_SERVICE_NAME }}/g" ./templates/monitoring/dashboard.json
+
+     # Step 3: Copy Files to EFS
+      - name: Copy Datasource and Dashboard to EFS
+        run: |
+         sudo apt-get update && sudo apt-get install -y amazon-efs-utils
+         sudo mkdir -p /mnt/efs
+         sudo mount -t efs ${EFS_ID}:/ /mnt/efs
+         sudo cp ./templates/monitoring/datasource.yaml /mnt/efs/grafana/provisioning/datasources/
+         sudo cp ./templates/monitoring/dashboard.json /mnt/efs/grafana/provisioning/dashboards/
+         sudo umount /mnt/efs
+
+     # Step 4: Restart Grafana ECS Task
+      - name: Restart Grafana ECS Task
+        run: |
+         aws ecs update-service --cluster "${{ env.ECS_CLUSTER_NAME }}" --service "grafana-service" --force-new-deployment
 
   prod-apply:
     name: Terraform Apply for Production
@@ -151,35 +191,4 @@ jobs:
       - name: Terraform Apply 
         run: terraform apply -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
 
-  destroy:
-    name: Terraform Destroy
-    needs:
-        - plan
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./infrastructure
-    environment:
-      name: destroy
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
-          role-session-name: ${{ env.ROLE_SESSION_NAME }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{env.TF_VERSION}}
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Destroy 
-        run: terraform destroy -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
+  
