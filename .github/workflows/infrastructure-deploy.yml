@@ -165,7 +165,7 @@ jobs:
          echo "mkdir"
          sudo mkdir -p /mnt/efs
          echo "mount"
-         sudo mount -t efs ${EFS_ID}:/ /mnt/efs
+         sudo mount -t efs -o tls,region=${AWS_REGION} ${EFS_ID}:/ /mnt/efs
          echo "cp1"
          sudo cp ./templates/monitoring/datasource.yaml /mnt/efs/grafana/provisioning/datasources/
          echo "cp2"
