@@ -86,7 +86,7 @@ module "alb" {
 module "autoscaling" {
   env = local.env
   source = "./modules/autoscaling"
-  ecs_service_name = module.ecs.ecs_service_name
+  ecs_service_name = module.ecs.ecs_app_service_name
   ecs_cluster_name = module.ecs.ecs_cluster_name
   min_capacity = var.min_capacity
   max_capacity = var.max_capacity
