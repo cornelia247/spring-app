@@ -121,12 +121,19 @@ jobs:
       - name: Get Terraform Outputs
         id: tf_outputs
         run: |
-         echo "EFS_ID=$(terraform output -raw efs_file_system_id)" >> $GITHUB_ENV
-         echo "APP_LOG_GROUP=$(terraform output -raw app_log_group)" >> $GITHUB_ENV
-         echo "GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group)" >> $GITHUB_ENV
-         echo "ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_ENV
-         echo "ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name)" >> $GITHUB_ENV
-         echo "ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name)" >> $GITHUB_ENV
+          EFS_ID=$(terraform output -raw efs_file_system_id)
+          APP_LOG_GROUP=$(terraform output -raw app_log_group)
+          GRAFANA_LOG_GROUP=$(terraform output -raw grafana_log_group)
+          ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
+          ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name)
+          ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name)
+
+          echo "EFS_ID=${EFS_ID}" >> $GITHUB_ENV
+          echo "APP_LOG_GROUP=${APP_LOG_GROUP}" >> $GITHUB_ENV
+          echo "GRAFANA_LOG_GROUP=${GRAFANA_LOG_GROUP}" >> $GITHUB_ENV
+          echo "ECS_CLUSTER_NAME=${ECS_CLUSTER_NAME}" >> $GITHUB_ENV
+          echo "ECS_APP_SERVICE_NAME=${ECS_APP_SERVICE_NAME}" >> $GITHUB_ENV
+          echo "ECS_GRAFANA_SERVICE_NAME=${ECS_GRAFANA_SERVICE_NAME}" >> $GITHUB_ENV
 
      # Step 2: Replace Placeholders in Datasource and Dashboard
       - name: Replace Placeholders in Datasource and Dashboard
