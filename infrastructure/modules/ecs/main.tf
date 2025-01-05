@@ -3,7 +3,7 @@ data "aws_secretsmanager_secret_version" "retrieved" {
 }
 data "aws_secretsmanager_secret_version" "grafana" {
   secret_id = aws_secretsmanager_secret.this.arn
-  depends_on = [ aws_secretsmanager_secret.this ]
+  depends_on = [ aws_secretsmanager_secret_version.this ]
 }
 locals {
   secret_json = jsondecode(data.aws_secretsmanager_secret_version.retrieved.secret_string)
