@@ -9,6 +9,5 @@ output "efs_file_system_id" {
   
 # }
 output "efs_mount_target_ips" {
-  value = aws_efs_mount_target.grafana.ip_address
-  
+  value = [for key, mt in aws_efs_mount_target.grafana : mt.ip_address]
 }
