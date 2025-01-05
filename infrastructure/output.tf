@@ -31,5 +31,8 @@ output "ecs_grafana_service_name" {
     value = module.ecs.ecs_grafana_service_name
   
 }
+output "efs_mount_target_ips" {
+  value = module.efs.efs_mount_target_ips
+}
 
 

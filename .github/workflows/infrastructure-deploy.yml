@@ -128,6 +128,8 @@ jobs:
           ECS_CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
           ECS_APP_SERVICE_NAME=$(terraform output -raw ecs_app_service_name)
           ECS_GRAFANA_SERVICE_NAME=$(terraform output -raw ecs_grafana_service_name)
+          ECS_MOUNT_TARGET_IP=$(terraform output -raw efs_mount_target_ips)
+          
 
           echo "EFS_ID=${EFS_ID}" >> $GITHUB_ENV
           echo "APP_LOG_GROUP=${APP_LOG_GROUP}" >> $GITHUB_ENV
@@ -135,8 +137,8 @@ jobs:
           echo "ECS_CLUSTER_NAME=${ECS_CLUSTER_NAME}" >> $GITHUB_ENV
           echo "ECS_APP_SERVICE_NAME=${ECS_APP_SERVICE_NAME}" >> $GITHUB_ENV
           echo "ECS_GRAFANA_SERVICE_NAME=${ECS_GRAFANA_SERVICE_NAME}" >> $GITHUB_ENV
-          echo "This is the EFS ID: $EFS_ID"
-          echo "This is the ECS App Service Name: $ECS_APP_SERVICE_NAME"
+          echo "ECS_MOUNT_TARGET_IP=${ECS_MOUNT_TARGET_IP}" >> $GITHUB_ENV
+
 
      # Step 2: Replace Placeholders in Datasource and Dashboard
       - name: Replace Placeholders in Datasource and Dashboard
@@ -165,7 +167,7 @@ jobs:
          echo "mkdir"
          sudo mkdir -p /mnt/efs
          echo "mount"
-         sudo mount -t efs -o tls,region=${AWS_REGION} ${EFS_ID}:/ /mnt/efs
+         sudo mount -t efs -o tls,region=${AWS_REGION},ip=${ECS_MOUNT_TARGET_IP} ${EFS_ID}:/ /mnt/efs
          echo "cp1"
          sudo cp ./templates/monitoring/datasource.yaml /mnt/efs/grafana/provisioning/datasources/
          echo "cp2"
