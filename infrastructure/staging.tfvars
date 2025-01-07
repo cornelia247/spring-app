@@ -1,5 +1,5 @@
 # General Environment Configuration
-env                   = "" # Example: "staging", "staging", or "prod" to indicate environment type.
+env                   = "" # Example: "dev", "staging", or "prod" to indicate environment type.
 aws_region            = "" # Example: "us-east-1" or "us-west-2".
 
 vpc_cidr_block        = "" # Example: "10.16.0.0/16". Plan CIDR blocks to avoid IP conflicts.
@@ -32,3 +32,4 @@ allocated_storage     = "" # Example: 20. Minimum storage in GB for development 
 db_username           = "" # Example: "postgres". Use a strong username; "postgres" is the default.
 db_name               = "" # Example: "postgres". Use the default PostgreSQL database created.
 recovery_window       =  # Example:  0. Days the secret will be kept after deleting, use a higher number for production 7
+
