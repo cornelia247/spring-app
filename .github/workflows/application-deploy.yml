@@ -1,15 +1,18 @@
 name: Application Deployment
 
 on:
-  push:
-    paths:
-      - "applications/**"
-      - ".github/workflows/application-deploy.yml"
-    branches:
-      - dev
-      - staging
-      - main
-      - grafana
+  workflow_run:
+    workflows:
+      - Infrastructure Deployment
+  # push:
+  #   paths:
+  #     - "applications/**"
+  #     - ".github/workflows/application-deploy.yml"
+  #   branches:
+  #     - dev
+  #     - staging
+  #     - main
+  #     - grafana
 
 env:
   AWS_REGION: us-east-1
@@ -180,4 +183,3 @@ jobs:
               task-definition: ${{ steps.task-def.outputs.task-definition }}
               service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
               cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
-              # wait-for-service-stability: true
