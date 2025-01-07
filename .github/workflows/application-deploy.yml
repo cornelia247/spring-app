@@ -113,11 +113,10 @@ jobs:
             task-definition: ${{ steps.task-def.outputs.task-definition }}
             service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
             cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
-            # wait-for-service-stability: true
 
   dockerize-and-push-to-production:
     needs: build-and-test
-    if: github.ref_name == 'main'
+    if: github.ref_name == 'main' 
     runs-on: ubuntu-latest
     defaults:
      run:
@@ -180,4 +179,4 @@ jobs:
               task-definition: ${{ steps.task-def.outputs.task-definition }}
               service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
               cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
-              # wait-for-service-stability: true
+

@@ -19,12 +19,17 @@ module "ecs" {
   vpc_id = module.vpc.vpc_id
   ecs_task_execution_role_name = var.ecs_task_execution_role_name
   alb_tg = module.alb.alb_tg
+  efs_file_system_arn = module.efs.efs_file_system_arn
+  alb_grafana_tg = module.alb.alb_grafana_tg
+  efs_file_system_id = module.efs.efs_file_system_id
+  recovery_window = var.recovery_window
+  aws_efs_access_point_id = module.efs.aws_efs_access_point_id
 
 }
 
 
 module "vpc" {
-  source = "./modules/common"
+  source = "./modules/vpc"
 
   cluster_name          = "${local.env}-${local.project}-cluster"
   project_name = var.project_name
@@ -57,7 +62,6 @@ module "database" {
   source = "./modules/database"
   project_name = var.project_name
   env = var.env
-  # public_subnet_ids= module.vpc.public_subnet_ids
   private_subnet_ids = module.vpc.private_subnet_ids
   engine_version = var.engine_version
   instance_class = var.instance_class
@@ -83,7 +87,7 @@ module "alb" {
 module "autoscaling" {
   env = local.env
   source = "./modules/autoscaling"
-  ecs_service_name = module.ecs.ecs_service_name
+  ecs_service_name = module.ecs.ecs_app_service_name
   ecs_cluster_name = module.ecs.ecs_cluster_name
   min_capacity = var.min_capacity
   max_capacity = var.max_capacity
@@ -95,4 +99,11 @@ module "cloudwatch" {
   source = "./modules/cloudwatch"
   env = local.env
   project_name = local.project
+}
+module "efs" {
+  source = "./modules/efs"
+  env = local.env
+  project_name = local.project
+  private_subnets = module.vpc.private_subnet_ids
+  efs_sg_id = module.vpc.efs_sg_id
 }

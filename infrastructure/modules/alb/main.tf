@@ -18,14 +18,14 @@ resource "aws_alb_target_group" "app" {
   vpc_id      = var.vpc_id
   target_type = "ip"
 
- health_check {
-  healthy_threshold   = "2"
-  interval            = "10"
-  protocol            = "HTTP"
-  matcher             = "200-401"
-  timeout             = "5"
-  path                = "/"
-  unhealthy_threshold = "2"
+  health_check {
+    healthy_threshold   = "3"
+    interval            = "30"         
+    protocol            = "HTTP"
+    matcher             = "200"
+    timeout             = "10"          
+    path                = "/login"
+    unhealthy_threshold = "5"           
   }
   tags = {
     Name        = "${var.env}-${var.project_name}-tg"
@@ -43,5 +43,40 @@ resource "aws_alb_listener" "app" {
   default_action {
     target_group_arn = aws_alb_target_group.app.id
     type             = "forward"
+  }
+}
+
+resource "aws_alb_target_group" "grafana" {
+  name        = "${var.env}-${var.project_name}-grafana-tg"
+  port        = 3000
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  health_check {
+    path                = "/"
+    interval            = 10
+    timeout             = 5
+    protocol            = "HTTP"
+    matcher             = "200-401"
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name        = "${var.env}-${var.project_name}-grafana-tg"
+    Project     = var.project_name
+    Environment = var.env
+  }
+}
+
+resource "aws_lb_listener" "grafana" {
+  load_balancer_arn =  aws_alb.main.id
+  port              = 3000
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.grafana.arn
   }
 }

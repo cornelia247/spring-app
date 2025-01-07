@@ -1,0 +1,110 @@
+{
+    "annotations": {
+      "list": []
+    },
+    "editable": true,
+    "panels": [
+      {
+        "title": "Application Log Group Logs",
+        "type": "logs",
+        "targets": [
+          {
+            "region": "${AWS_REGION}",
+            "logGroups": [
+              {
+                "name": "${APP_LOG_GROUP}"
+              }
+            ],
+            "queryMode": "Logs",
+            "queryLanguage": "CWLI",
+            "expression": "fields @timestamp, @message | sort @timestamp desc | limit 20",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 9
+        }
+      },
+      {
+        "title": "Grafana Log Group Logs",
+        "type": "logs",
+        "targets": [
+          {
+            "region": "${AWS_REGION}",
+            "logGroups": [
+              {
+                "name": "${GRAFANA_LOG_GROUP}"
+              }
+            ],
+            "queryMode": "Logs",
+            "queryLanguage": "CWLI",
+            "expression": "fields @timestamp, @message | sort @timestamp desc | limit 20",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 12,
+          "h": 9
+        }
+      },
+      {
+        "title": "Application - CPU Utilization",
+        "type": "timeseries",
+        "targets": [
+          {
+            "namespace": "AWS/ECS",
+            "metricName": "CPUUtilization",
+            "dimensions": {
+              "ClusterName": "${ECS_CLUSTER_NAME}",
+              "ServiceName": "${ECS_APP_SERVICE_NAME}"
+            },
+            "region": "${AWS_REGION}",
+            "statistic": "Average",
+            "period": "300",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {
+          "x": 0,
+          "y": 9,
+          "w": 12,
+          "h": 9
+        }
+      },
+      {
+        "title": "Grafana - CPU Utilization",
+        "type": "timeseries",
+        "targets": [
+          {
+            "namespace": "AWS/ECS",
+            "metricName": "CPUUtilization",
+            "dimensions": {
+              "ClusterName": "${ECS_CLUSTER_NAME}",
+              "ServiceName": "${ECS_GRAFANA_SERVICE_NAME}"
+            },
+            "region": "${AWS_REGION}",
+            "statistic": "Average",
+            "period": "300",
+            "refId": "D"
+          }
+        ],
+        "gridPos": {
+          "x": 12,
+          "y": 9,
+          "w": 12,
+          "h": 9
+        }
+      }
+    ],
+    "title": "CloudWatch Dashboard",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "schemaVersion": 40
+  }

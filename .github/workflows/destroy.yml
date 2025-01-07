@@ -10,15 +10,20 @@ env:
   TF_VERSION: 1.9.8
   ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
 
+permissions:
+  id-token: write 
+  contents: read 
+
 jobs:
  destroy:
-   name: "Delete app and infrastructure"
+   name: "Delete infrastructure"
    runs-on: ubuntu-latest
    defaults:
-     run:
-       shell: bash
-       # We keep Terraform files in the terraform directory.
-       working-directory: ./terraform
+      run:
+        shell: bash
+        working-directory: ./infrastructure
+   environment:
+      name: destroy
     
    steps:
      - name: Checkout the repository to the runner
@@ -36,26 +41,12 @@ jobs:
           role-to-assume: ${{ env.ROLE_TO_ASSUME }}
           role-session-name: ${{ env.ROLE_SESSION_NAME }}
           aws-region: ${{ env.AWS_REGION }}
-    
-     - name: Install kubectl
-       run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
 
-     - name: Update kubeconfig
-       run: aws eks update-kubeconfig --name ${{env.ENVIRONMENT}}-${{ vars.PROJECT_NAME }}-cluster --region ${{ env.AWS_REGION }}
-      
-     - name: Deploy application
-       run: | 
-          kubectl delete -f ../argocd/config/argocd-app.yaml || true
-          kubectl delete namespace argocd || true
-     
      - name: Terraform init
        id: init
        run: terraform init
 
      - name: Terraform destroy
        id: destroy
-       run: terraform destroy -auto-approve
+       run: terraform destroy -var-file=${{env.ENVIRONMENT}}.tfvars --auto-approve
       

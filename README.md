@@ -12,12 +12,16 @@ This document provides a step-by-step guide to deploying a cloud-based applicati
    - Packages, tests, and builds the application into a Docker image.
    - Pushes the Docker image to Amazon Elastic Container Registry (ECR).
    - Deploys the application to Elastic Container Service (ECS) using the infrastructure provisioned by the Terraform templates.
+3. **Destroy Workflow (`destroy.yml`)**:
+   - Cleans up all resources created by terraform.
 
 The Terraform templates include components such as:
-- Application Load Balancers (ALBs)
+
+- Application Load Balancers (ALB)
+- Elastic File System(EFS)
 - Auto-scaling configurations
 - CloudWatch monitoring
-- Virtual Private Clouds (VPCs)
+- Virtual Private Clouds (VPC)
 - Security groups
 - Elastic Container Service tasks
 - A RDS database
@@ -71,12 +75,7 @@ The Terraform templates include components such as:
      ```
    - Example:
      ```bash
-     aws s3api create-bucket --bucket your-terraform-state-bucket --region us-west-2
-     ```
-   - Enable Versioning on the S3 Bucket:
-     ```bash
-     aws s3api put-bucket-versioning --bucket <bucket-name> --versioning-configuration Status=Enabled
-
+     aws s3api create-bucket --bucket your-terraform-state-bucket --region us-east-1
      ```
    - Create a DynamoDB table for state locking:
      ```bash
@@ -171,11 +170,92 @@ The Infrastructure workflow relies on specific variables and secrets for a succe
 
 ---
 
+## 7. Next Steps
+- Navigate to the host Name **alb_hostname** outputted by terraform after about 10 minutes to view your application, you can try logging in by using: `greg/turnquist` as credentials 
 
-## Next Steps
-- Navigate to the host Name outputted by terraform after about 5 minutes to view your application, you can try logging in by using: `greg/turnquist` as credentials 
+## 8. Grafana Monitoring Setup
+The infrastructure includes a Grafana service deployed on ECS, configured to use CloudWatch as a data source for monitoring application logs, cluster metrics, and service metrics.
+
+### Accessing Grafana
+- Access the Grafana portal using the ALB DNS name (output from Terraform) on port 3000
+  ```
+  http://<alb-dns-name>:3000
+  ```
+- Login credentials:
+  - Username: `admin`
+  - Password: Retrieve from AWS Secrets Manager using the following command:
+
+    ```bash
+    aws secretsmanager get-secret-value \
+        --secret-id <name of secret> \
+        --query SecretString \
+        --output text | jq -r '.password'
+    ```
+
+- You can get the name of the grafana secret from the output of the terraform named **grafana_secret**
+
+### Configuring CloudWatch Data Source
+
+1. After logging in to Grafana:
+   - Navigate to Connections → Data Sources
+   - Click "Add data source"
+   -  Search and select "CloudWatch"
+
+2. Configure the CloudWatch data source:
+   - Name: `CloudWatch` (or your preferred name)
+   - Authentication Provider: "AWS SDK Default"
+   - Default Region: Select the AWS region where your resources are deployed
+   
+
+3. Click "Save & Test" to verify the connection
+
+### Setting Up Dashboards
+
+1. Create a new dashboard:
+   - Click the "+" icon at the top right corner
+   - Select "New Dashboard"
+   - Click "Add visualization"
+
+2. Configure ECS Cluster Metrics:
+   - Select "CloudWatch" as the data source
+   - Select Your Region, and under "Choose" select "CloudWatch Metrics"
+   - Namespace: AWS/ECS
+   - Common metrics to monitor:
+     - CPUUtilization
+     - MemoryUtilization
+   - Click on "Dimensions" to include the cluster/services you want to monitor.
+   - You can add multiple queries my selecting the "Add query" button
+   - Give the Panel a descriptive name
+   - Click on "Run Queries" and save your dashboard giving it a Descriptive name.
+
+3. Configure Application Logs:
+   - Add a new panel by selecting the "Edit" button, "Add" dropdown and "Visualization"
+   - Select Your Region, and under "Choose" select "CloudWatch Logs"
+   - Log group: Select your ECS task log group
+   - Ensure to change Visualization from "Time series" to "Logs"
+   - Give the Panel a descriptive name and you can enable some filters like:
+      - Warp lines
+      - Common labels
 
 
+4. Save your dashboard:
+   - Click the save icon in the top right
+   - Give your dashboard a name
+   - Click "Save"
 
-## Destroy Resources
-- The `infrastructure-deploy.yml` includes a destroy stage which helps clear all resources created in your cloud environment.  It requires an approval by a reviewer.
+## 9. Destroy Resources
+
+- When ready to clean up your environment, you can run the `destroy.yml` workflow.
+- Clean up your created S3 bucket and DynamoDB table using these commands:
+- Example:
+
+     ```bash
+     # Delete all objects and in the S3 bucket
+     aws s3 rm s3://<your-terraform-state-bucket> --recursive
+
+     # Delete the S3 bucket
+     aws s3api delete-bucket --bucket <your-terraform-state-bucket> --region <region-name>
+
+     # Delete the DynamoDB table
+     aws dynamodb delete-table --table-name <your-terraform-state-lock> --region <region-name>
+     ```
