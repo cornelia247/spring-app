@@ -113,6 +113,12 @@ jobs:
             task-definition: ${{ steps.task-def.outputs.task-definition }}
             service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
             cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
+      - name: Force new deployment
+        run: |
+              aws ecs update-service \
+                --cluster ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs \
+                --service ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service \
+                --force-new-deployment
 
   dockerize-and-push-to-production:
     needs: build-and-test
@@ -179,3 +185,10 @@ jobs:
               task-definition: ${{ steps.task-def.outputs.task-definition }}
               service: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service
               cluster: ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs
+
+        - name: Force new deployment
+          run: |
+                    aws ecs update-service \
+                      --cluster ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-ecs \
+                      --service ${{ env.ENVIRONMENT }}-${{ env.PROJECT_NAME }}-service \
+                      --force-new-deployment
