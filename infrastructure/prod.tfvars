@@ -4,7 +4,7 @@ aws_region            = "" # Example: "us-east-1" or "us-west-2".
 
 vpc_cidr_block        = "" # Example: "10.16.0.0/16". Plan CIDR blocks to avoid IP conflicts.
 
-# Subnet Configuration
+# Subnet Configurations
 pub_subnet_count      = "" # Example: 2. For redundancy, use at least 2 public subnets.
 pub_cidr_block        = [] # Example: ["10.16.0.0/20", "10.16.16.0/20"].
 
