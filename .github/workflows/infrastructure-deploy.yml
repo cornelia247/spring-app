@@ -9,8 +9,8 @@ on:
       - main
       - staging
       - dev
-
-  # workflow_dispatch:
+      - grafana
+  workflow_dispatch:
 
 
 env:

@@ -1,16 +1,6 @@
 name: Application Deployment
 
 on:
-  workflow_run:
-    workflows:
-      - Infrastructure Deployment
-    types:
-      - completed 
-    branches:
-      - dev
-      - staging
-      - main
-      - grafana
   push:
     paths:
       - "applications/**"
@@ -19,6 +9,7 @@ on:
       - staging
       - main
       - grafana
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
