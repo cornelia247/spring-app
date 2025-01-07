@@ -116,7 +116,7 @@ jobs:
 
   dockerize-and-push-to-production:
     needs: build-and-test
-    if: github.ref_name == 'main' || ${{ github.event.workflow_run.head_branch }} == "main"
+    if: github.ref_name == 'main' 
     runs-on: ubuntu-latest
     defaults:
      run:
