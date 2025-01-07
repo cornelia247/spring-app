@@ -10,6 +10,7 @@ on:
       - staging
       - dev
       - grafana
+  workflow_dispatch:
 
 
 env:
