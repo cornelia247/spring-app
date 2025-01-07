@@ -1,6 +1,11 @@
 name: Application Deployment
 
 on:
+  workflow_run:
+    workflows:
+      - Infrastructure Deployment
+    types:
+      - completed
   push:
     paths:
       - "applications/**"

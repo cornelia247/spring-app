@@ -65,6 +65,7 @@ module "database" {
   db_username = var.db_username
   db_name =  var.db_name
   db_sg_id = module.vpc.db_sg_id
+  recovery_window = var.recovery_window
 }
 
 
