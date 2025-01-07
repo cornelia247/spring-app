@@ -63,7 +63,7 @@ jobs:
   dockerize-and-push-to-dev-or-staging:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref_name == 'staging' || github.ref_name == 'dev' 
+    if: github.ref_name != 'main' 
     defaults:
      run:
       working-directory: ./applications
