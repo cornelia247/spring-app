@@ -5,15 +5,20 @@ on:
     workflows:
       - Infrastructure Deployment
     types:
-      - completed
-  push:
-    paths:
-      - "applications/**"
-      - ".github/workflows/application-deploy.yml"
+      - completed 
     branches:
       - dev
       - staging
       - main
+      - grafana
+  push:
+    paths:
+      - "applications/**"
+    branches:
+      - dev
+      - staging
+      - main
+      - grafana
 
 env:
   AWS_REGION: us-east-1
