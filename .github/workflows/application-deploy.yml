@@ -5,11 +5,15 @@ on:
     workflows:
       - Infrastructure Deployment
     types:
-      - completed
+      - completed 
+    branches:
+      - dev
+      - staging
+      - main
+      - grafana
   push:
     paths:
       - "applications/**"
-      # - ".github/workflows/application-deploy.yml"
     branches:
       - dev
       - staging
@@ -59,7 +63,7 @@ jobs:
   dockerize-and-push-to-dev-or-staging:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref_name == 'staging' || github.ref_name == 'dev' 
+    if: github.ref_name != 'main' 
     defaults:
      run:
       working-directory: ./applications
