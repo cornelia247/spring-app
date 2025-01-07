@@ -18,14 +18,14 @@ resource "aws_alb_target_group" "app" {
   vpc_id      = var.vpc_id
   target_type = "ip"
 
- health_check {
-  healthy_threshold   = "2"
-  interval            = "10"
-  protocol            = "HTTP"
-  matcher             = "200"
-  timeout             = "5"
-  path                = "/login"
-  unhealthy_threshold = "2"
+  health_check {
+    healthy_threshold   = "3"
+    interval            = "30"         
+    protocol            = "HTTP"
+    matcher             = "200"
+    timeout             = "10"          
+    path                = "/login"
+    unhealthy_threshold = "5"           
   }
   tags = {
     Name        = "${var.env}-${var.project_name}-tg"
