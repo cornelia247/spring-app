@@ -3,7 +3,7 @@ data "aws_secretsmanager_secret_version" "retrieved" {
 }
 data "aws_secretsmanager_secret_version" "grafana" {
   secret_id = aws_secretsmanager_secret.this.arn
-  depends_on = [ aws_secretsmanager_secret_version.this ]
+  depends_on = [ aws ]
 }
 locals {
   secret_json = jsondecode(data.aws_secretsmanager_secret_version.retrieved.secret_string)
@@ -200,7 +200,11 @@ resource "aws_ecs_task_definition" "grafana" {
 
     efs_volume_configuration {
       file_system_id          = var.efs_file_system_id
-      root_directory = "/grafana"
+      transit_encryption      = "ENABLED"  # Encrypts data in transit
+      authorization_config {
+        access_point_id = var.aws_efs_access_point_id # Use the configured access point
+        iam             = "ENABLED"
+      }
     }
   }
 }

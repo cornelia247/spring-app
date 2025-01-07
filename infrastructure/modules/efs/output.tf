@@ -4,10 +4,10 @@ output "efs_file_system_arn" {
 output "efs_file_system_id" {
   value = aws_efs_file_system.grafana.id
 }
-# output "aws_efs_access_point_id" {
-#   value = aws_efs_access_point.grafana.id
+output "aws_efs_access_point_id" {
+  value = aws_efs_access_point.grafana.id
   
-# }
+}
 output "efs_mount_target_ips" {
   value = aws_efs_mount_target.grafana[0].ip_address
 }

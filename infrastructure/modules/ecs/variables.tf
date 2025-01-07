@@ -16,6 +16,6 @@ variable "alb_tg" {}
 variable "efs_file_system_arn" {}
 variable "alb_grafana_tg" {}
 variable "efs_file_system_id" {}
-# variable "aws_efs_access_point_id" {}
+variable "aws_efs_access_point_id" {}
 variable "recovery_window" {}
 

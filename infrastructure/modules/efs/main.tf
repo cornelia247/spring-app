@@ -15,21 +15,21 @@ resource "aws_efs_mount_target" "grafana" {
 }
 
 
-# # EFS Access Point
-# resource "aws_efs_access_point" "grafana" {
-#   file_system_id = aws_efs_file_system.grafana.id
+# EFS Access Point
+resource "aws_efs_access_point" "grafana" {
+  file_system_id = aws_efs_file_system.grafana.id
 
-#   posix_user {
-#     uid = 1000
-#     gid = 1000
-#   }
+  posix_user {
+    uid = 1000
+    gid = 1000
+  }
 
-#   root_directory {
-#     path = "/grafana"
-#     creation_info {
-#       owner_uid   = 1000
-#       owner_gid   = 1000
-#       permissions = "0755"
-#     }
-#   }
-# }
+  root_directory {
+    path = "/grafana"
+    creation_info {
+      owner_uid   = 1000
+      owner_gid   = 1000
+      permissions = "0755"
+    }
+  }
+}

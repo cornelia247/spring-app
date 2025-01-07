@@ -23,6 +23,7 @@ module "ecs" {
   alb_grafana_tg = module.alb.alb_grafana_tg
   efs_file_system_id = module.efs.efs_file_system_id
   recovery_window = var.recovery_window
+  aws_efs_access_point_id = module.efs.aws_efs_access_point_id
 
 }
 
