@@ -33,7 +33,7 @@
       "mountPoints": [
          {
             "sourceVolume": "${SOURCE_VOLUME}",
-            "containerPath": "/var/lib/grafana"
+            "containerPath": "/etc/grafana/provisioning"
          }
       ]
    }
