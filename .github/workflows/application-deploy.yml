@@ -4,15 +4,15 @@ on:
   workflow_run:
     workflows:
       - Infrastructure Deployment
-  # push:
-  #   paths:
-  #     - "applications/**"
-  #     - ".github/workflows/application-deploy.yml"
-  #   branches:
-  #     - dev
-  #     - staging
-  #     - main
-  #     - grafana
+  push:
+    paths:
+      - "applications/**"
+      # - ".github/workflows/application-deploy.yml"
+    branches:
+      - dev
+      - staging
+      - main
+      - grafana
 
 env:
   AWS_REGION: us-east-1
